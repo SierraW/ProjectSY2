@@ -1,9 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20E241" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+    <entity name="Container" representedClassName="Container" syncable="YES" codeGenerationType="class">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="unit" optional="YES" attributeType="String"/>
+        <relationship name="ingredients" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="containers" inverseEntity="Ingredient"/>
+        <relationship name="operations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Operation" inverseName="container" inverseEntity="Operation"/>
+        <relationship name="steps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Step" inverseName="container" inverseEntity="Step"/>
+    </entity>
+    <entity name="Ingredient" representedClassName="Ingredient" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="containers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Container" inverseName="ingredients" inverseEntity="Container"/>
+        <relationship name="operations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Operation" inverseName="ingredient" inverseEntity="Operation"/>
+    </entity>
     <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="Operation" representedClassName="Operation" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="container" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Container" inverseName="operations" inverseEntity="Container"/>
+        <relationship name="ingredient" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="operations" inverseEntity="Ingredient"/>
+        <relationship name="productContainer" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="operations" inverseEntity="ProductContainer"/>
+    </entity>
+    <entity name="ProductContainer" representedClassName="ProductContainer" syncable="YES" codeGenerationType="class">
+        <attribute name="containerName" optional="YES" attributeType="String"/>
+        <attribute name="productName" optional="YES" attributeType="String"/>
+        <relationship name="operations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Operation" inverseName="productContainer" inverseEntity="Operation"/>
+        <relationship name="steps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Step" inverseName="productContainer" inverseEntity="Step"/>
+    </entity>
+    <entity name="Step" representedClassName="Step" syncable="YES" codeGenerationType="class">
+        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="stepName" optional="YES" attributeType="String"/>
+        <relationship name="container" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Container" inverseName="steps" inverseEntity="Container"/>
+        <relationship name="productContainer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="steps" inverseEntity="ProductContainer"/>
+    </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="Ingredient" positionX="-63" positionY="-18" width="128" height="74"/>
+        <element name="ProductContainer" positionX="-63" positionY="-9" width="128" height="89"/>
+        <element name="Step" positionX="-54" positionY="9" width="128" height="89"/>
+        <element name="Container" positionX="-36" positionY="27" width="128" height="119"/>
+        <element name="Item" positionX="-27" positionY="81" width="128" height="44"/>
+        <element name="Operation" positionX="-18" positionY="90" width="128" height="89"/>
     </elements>
 </model>

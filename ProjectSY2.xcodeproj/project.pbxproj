@@ -15,6 +15,15 @@
 		3BAEEF9F265E9BC70006E415 /* ProjectSY2.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEF9D265E9BC70006E415 /* ProjectSY2.xcdatamodeld */; };
 		3BAEEFAA265E9BC70006E415 /* ProjectSY2Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFA9265E9BC70006E415 /* ProjectSY2Tests.swift */; };
 		3BAEEFB5265E9BC70006E415 /* ProjectSY2UITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFB4265E9BC70006E415 /* ProjectSY2UITests.swift */; };
+		3BAEEFC9265EA00A0006E415 /* IngredientListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFC8265EA00A0006E415 /* IngredientListView.swift */; };
+		3BAEEFCD265EA3B90006E415 /* IngredientAdditionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFCC265EA3B90006E415 /* IngredientAdditionView.swift */; };
+		3BAEEFD0265EA70F0006E415 /* SubmitButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFCF265EA70F0006E415 /* SubmitButtonView.swift */; };
+		3BAEEFD2265EDFE10006E415 /* ContainerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFD1265EDFE10006E415 /* ContainerListView.swift */; };
+		3BAEEFD4265EDFEE0006E415 /* ContainerAdditionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFD3265EDFEE0006E415 /* ContainerAdditionView.swift */; };
+		3BAEEFD6265EE0150006E415 /* ProductContainerListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFD5265EE0150006E415 /* ProductContainerListView.swift */; };
+		3BAEEFDC265EE51F0006E415 /* OperationListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFDB265EE51F0006E415 /* OperationListView.swift */; };
+		3BAEEFDE265EE52A0006E415 /* OperationAdditionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFDD265EE52A0006E415 /* OperationAdditionView.swift */; };
+		3BAEEFE0265EEDA40006E415 /* ProductContainerAdditionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BAEEFDF265EEDA40006E415 /* ProductContainerAdditionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +58,15 @@
 		3BAEEFB0265E9BC70006E415 /* ProjectSY2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProjectSY2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3BAEEFB4265E9BC70006E415 /* ProjectSY2UITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSY2UITests.swift; sourceTree = "<group>"; };
 		3BAEEFB6265E9BC70006E415 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		3BAEEFC8265EA00A0006E415 /* IngredientListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientListView.swift; sourceTree = "<group>"; };
+		3BAEEFCC265EA3B90006E415 /* IngredientAdditionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IngredientAdditionView.swift; sourceTree = "<group>"; };
+		3BAEEFCF265EA70F0006E415 /* SubmitButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubmitButtonView.swift; sourceTree = "<group>"; };
+		3BAEEFD1265EDFE10006E415 /* ContainerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerListView.swift; sourceTree = "<group>"; };
+		3BAEEFD3265EDFEE0006E415 /* ContainerAdditionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContainerAdditionView.swift; sourceTree = "<group>"; };
+		3BAEEFD5265EE0150006E415 /* ProductContainerListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductContainerListView.swift; sourceTree = "<group>"; };
+		3BAEEFDB265EE51F0006E415 /* OperationListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationListView.swift; sourceTree = "<group>"; };
+		3BAEEFDD265EE52A0006E415 /* OperationAdditionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationAdditionView.swift; sourceTree = "<group>"; };
+		3BAEEFDF265EEDA40006E415 /* ProductContainerAdditionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductContainerAdditionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +117,8 @@
 		3BAEEF91265E9BC40006E415 /* ProjectSY2 */ = {
 			isa = PBXGroup;
 			children = (
+				3BAEEFC3265E9EAB0006E415 /* View */,
+				3BAEEFC2265E9EA70006E415 /* Core */,
 				3BAEEF92265E9BC40006E415 /* ProjectSY2App.swift */,
 				3BAEEF94265E9BC40006E415 /* ContentView.swift */,
 				3BAEEF96265E9BC70006E415 /* Assets.xcassets */,
@@ -134,6 +154,77 @@
 				3BAEEFB6265E9BC70006E415 /* Info.plist */,
 			);
 			path = ProjectSY2UITests;
+			sourceTree = "<group>";
+		};
+		3BAEEFC2265E9EA70006E415 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		3BAEEFC3265E9EAB0006E415 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				3BAEEFD9265EE4FF0006E415 /* Operation */,
+				3BAEEFCE265EA7000006E415 /* Utils */,
+				3BAEEFC7265E9FDB0006E415 /* Main */,
+				3BAEEFC6265E9FD60006E415 /* Container */,
+				3BAEEFC5265E9FCE0006E415 /* ProductContainer */,
+				3BAEEFC4265E9FC50006E415 /* Ingredient */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		3BAEEFC4265E9FC50006E415 /* Ingredient */ = {
+			isa = PBXGroup;
+			children = (
+				3BAEEFC8265EA00A0006E415 /* IngredientListView.swift */,
+				3BAEEFCC265EA3B90006E415 /* IngredientAdditionView.swift */,
+			);
+			path = Ingredient;
+			sourceTree = "<group>";
+		};
+		3BAEEFC5265E9FCE0006E415 /* ProductContainer */ = {
+			isa = PBXGroup;
+			children = (
+				3BAEEFD5265EE0150006E415 /* ProductContainerListView.swift */,
+				3BAEEFDF265EEDA40006E415 /* ProductContainerAdditionView.swift */,
+			);
+			path = ProductContainer;
+			sourceTree = "<group>";
+		};
+		3BAEEFC6265E9FD60006E415 /* Container */ = {
+			isa = PBXGroup;
+			children = (
+				3BAEEFD1265EDFE10006E415 /* ContainerListView.swift */,
+				3BAEEFD3265EDFEE0006E415 /* ContainerAdditionView.swift */,
+			);
+			path = Container;
+			sourceTree = "<group>";
+		};
+		3BAEEFC7265E9FDB0006E415 /* Main */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Main;
+			sourceTree = "<group>";
+		};
+		3BAEEFCE265EA7000006E415 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				3BAEEFCF265EA70F0006E415 /* SubmitButtonView.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		3BAEEFD9265EE4FF0006E415 /* Operation */ = {
+			isa = PBXGroup;
+			children = (
+				3BAEEFDB265EE51F0006E415 /* OperationListView.swift */,
+				3BAEEFDD265EE52A0006E415 /* OperationAdditionView.swift */,
+			);
+			path = Operation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -265,10 +356,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BAEEFD0265EA70F0006E415 /* SubmitButtonView.swift in Sources */,
+				3BAEEFC9265EA00A0006E415 /* IngredientListView.swift in Sources */,
+				3BAEEFDC265EE51F0006E415 /* OperationListView.swift in Sources */,
+				3BAEEFD4265EDFEE0006E415 /* ContainerAdditionView.swift in Sources */,
 				3BAEEF9F265E9BC70006E415 /* ProjectSY2.xcdatamodeld in Sources */,
+				3BAEEFDE265EE52A0006E415 /* OperationAdditionView.swift in Sources */,
 				3BAEEF9C265E9BC70006E415 /* Persistence.swift in Sources */,
+				3BAEEFD2265EDFE10006E415 /* ContainerListView.swift in Sources */,
+				3BAEEFCD265EA3B90006E415 /* IngredientAdditionView.swift in Sources */,
 				3BAEEF95265E9BC40006E415 /* ContentView.swift in Sources */,
+				3BAEEFD6265EE0150006E415 /* ProductContainerListView.swift in Sources */,
 				3BAEEF93265E9BC40006E415 /* ProjectSY2App.swift in Sources */,
+				3BAEEFE0265EEDA40006E415 /* ProductContainerAdditionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
