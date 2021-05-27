@@ -10,7 +10,7 @@ import SwiftUI
 struct ProductContainerListView: View {
     @Environment(\.managedObjectContext) var viewContext
     
-    @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \ProductContainer.containerName, ascending: true)],
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \ProductContainer.name, ascending: true)],
                   animation: .default)
     var productContainers: FetchedResults<ProductContainer>
     var selected: ((ProductContainer) -> Void)?
@@ -29,6 +29,7 @@ struct ProductContainerListView: View {
                     }
                 }
                 pcList
+                Spacer()
             }
             .padding()
         }
@@ -51,9 +52,9 @@ struct ProductContainerListView: View {
             List {
                 ForEach(productContainers) { pc in
                     if selected == nil {
-                        Text(pc.containerName ?? "Error item")
+                        Text(pc.name ?? "Error item")
                     } else {
-                        Button(pc.containerName ?? "Error item") {
+                        Button(pc.name ?? "Error item") {
                             selected!(pc)
                         }
                     }

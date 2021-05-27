@@ -9,12 +9,11 @@ import SwiftUI
 
 struct IngredientListView: View {
     @Environment(\.managedObjectContext) var viewContext
-    
+    @EnvironmentObject var ingredientData: IngredientData
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Ingredient.name, ascending: true)],
                   animation: .default)
     var ingredients: FetchedResults<Ingredient>
-    var allowEdit = false
-    @State var isShowingIngredientAdditionView = false
+    var isDeleteDisabled = false
     
     var body: some View {
         ZStack {
@@ -22,20 +21,20 @@ struct IngredientListView: View {
                 HStack {
                     Text("Ingredient")
                         .font(.title)
-                        .fontWeight(.heavy)
                     Spacer()
                     Button("Add") {
-                        isShowingIngredientAdditionView = true
+                        ingredientData.set(nil)
                     }
                 }
                 listView
-                
+                Spacer()
             }
             .padding()
         }
-        .sheet(isPresented: $isShowingIngredientAdditionView, content: {
+        .sheet(isPresented: $ingredientData.isShowingIngredientDetailView, content: {
             IngredientAdditionView()
                 .environment(\.managedObjectContext, viewContext)
+                .environmentObject(ingredientData)
         })
     }
     
@@ -47,10 +46,12 @@ struct IngredientListView: View {
         } else {
             List {
                 ForEach(ingredients) { item in
-                    Text(item.name ?? "Error item")
+                    Button(item.name ?? "Error item") {
+                        ingredientData.set(item)
+                    }
                 }
                 .onDelete(perform: removeIngredients)
-                .deleteDisabled(allowEdit)
+                .deleteDisabled(isDeleteDisabled)
             }
         }
     }
@@ -72,5 +73,6 @@ struct IngredientListView_Previews: PreviewProvider {
     static var previews: some View {
         IngredientListView()
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+            .environmentObject(IngredientData())
     }
 }

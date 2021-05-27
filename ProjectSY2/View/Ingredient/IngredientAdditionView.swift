@@ -6,15 +6,39 @@
 //
 
 import SwiftUI
+import Combine
+
+class IngredientData: ObservableObject {
+    @Published var ingredient: Ingredient? = nil
+    @Published var name = ""
+    @Published var containers: [Container] = []
+    @Published var operations: [Operation] = []
+    @Published var isShowingIngredientDetailView = false
+    
+    func set(_ ingredient: Ingredient?) {
+        self.name = ""
+        self.containers = []
+        self.operations = []
+        if let ingredient = ingredient {
+            if let containers = ingredient.containers {
+                self.containers = Array(containers as! Set<Container>)
+            }
+            if let operations = ingredient.operations {
+                self.operations = Array(operations as! Set<Operation>)
+            }
+        }
+        self.ingredient = ingredient
+        self.isShowingIngredientDetailView = true
+    }
+}
 
 struct IngredientAdditionView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    var ingredient: Ingredient?
-    @State var name = ""
-    @State var containers: [Container] = []
-    @State var operations: [Operation] = []
+    @EnvironmentObject var ingredientData: IngredientData
     @State var emptyTitleWarning = false
     @State var modifyWarning = false
+    @State var isSelectingContainer = false
+    @State var isSelectingOperation = false
     
     var body: some View {
         VStack {
@@ -23,7 +47,7 @@ struct IngredientAdditionView: View {
                     title
                     Spacer()
                 }
-                TextField("Edit name...", text: $name)
+                TextField("New name...", text: $ingredientData.name)
                     .font(.title2)
                     .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
                 HStack {
@@ -32,7 +56,7 @@ struct IngredientAdditionView: View {
                         .fontWeight(.bold)
                     Spacer()
                     Button("Add") {
-                        // add contianer
+                        isSelectingContainer = true
                     }
                 }
                 containerList
@@ -43,10 +67,10 @@ struct IngredientAdditionView: View {
                         .fontWeight(.bold)
                     Spacer()
                     Button("Add") {
-                        // add operations
+                        isSelectingOperation = true
                     }
                 }
-                containerList
+                operationList
                     .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.none, alignment: .topLeading)
             }
             .padding()
@@ -56,103 +80,138 @@ struct IngredientAdditionView: View {
                 SubmitButtonView(title: "Submit")
             })
         }
+        .sheet(isPresented: $isSelectingOperation, content: {
+            OperationListView(isDeleteDisabled: true) { operation in
+                isSelectingOperation = false
+                self.addOperation(operation)
+            }
+            .environment(\.managedObjectContext, viewContext)
+            .environmentObject(OperationData())
+        })
+        .sheet(isPresented: $isSelectingContainer, content: {
+            ContainerListView(isDeleteDisabled: true) { container in
+                isSelectingContainer = false
+                self.addContainer(container)
+            }
+            .environment(\.managedObjectContext, viewContext)
+            .environmentObject(ContainerData())
+        })
         .alert(isPresented: $emptyTitleWarning, content: {
             Alert(title: Text("Name cannot be empty."))
         })
         .alert(isPresented: $modifyWarning, content: {
-            Alert(title: Text("Changes about to apply"), message: Text("Name of the ingredient: \(name), and the containers above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
+            Alert(title: Text("Changes about to apply"), message: Text("Name of the ingredient: \(ingredientData.name), and the containers above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
                 self.modifyWarning = false
-                self.editIngredient()
+                self.submit()
             }))
         })
     }
     
     @ViewBuilder
     var title: some View {
-        if ingredient == nil {
+        if ingredientData.ingredient == nil {
             Text("New Ingredient")
                 .font(.title)
         } else {
-            Text(ingredient!.name ?? "Unnamed")
+            Text(ingredientData.ingredient!.name ?? "Unnamed")
                 .font(.title)
         }
     }
     
     @ViewBuilder
     var containerList: some View {
-        if containers.isEmpty {
+        if ingredientData.containers.isEmpty {
             HStack {
                 Text("No assigned container")
                 Spacer()
             }
         } else {
             List {
-                ForEach(containers) { con in
+                ForEach(ingredientData.containers) { con in
                     Text(con.name ?? "Error item")
                 }
-                .onDelete(perform: { indexSet in
-                    if ingredient != nil {
-                        for index in indexSet {
-                            ingredient!.removeFromContainers(containers[index])
-                        }
-                    }
-                    containers.remove(atOffsets: indexSet)
-                })
+                .onDelete(perform: deleteContainer(_:))
             }
         }
     }
     
     @ViewBuilder
     var operationList: some View {
-        if operations.isEmpty {
+        if ingredientData.operations.isEmpty {
             HStack {
                 Text("No assigned operation")
             }
         } else {
             List {
-                ForEach(operations) { ope in
+                ForEach(ingredientData.operations) { ope in
                     Text(ope.name ?? "Error item")
                 }
-                .onDelete(perform: { indexSet in
-                    if let ingredient = ingredient {
-                        for index in indexSet {
-                            ingredient.removeFromOperations(operations[index])
-                        }
-                    }
-                    operations.remove(atOffsets: indexSet)
-                })
+                .onDelete(perform: deleteOperation(_:))
             }
         }
     }
     
+    private func addContainer(_ container: Container) {
+        ingredientData.containers.append(container)
+        ingredientData.ingredient?.addToContainers(container)
+    }
+    
+    private func addOperation(_ operation: Operation) {
+        ingredientData.operations.append(operation)
+        ingredientData.ingredient?.addToOperations(operation)
+    }
+    
+    private func deleteContainer(_ indexSet: IndexSet) {
+        if ingredientData.ingredient != nil {
+            for index in indexSet {
+                let container = ingredientData.containers[index]
+                ingredientData.ingredient!.removeFromContainers(container)
+            }
+        }
+        ingredientData.containers.remove(atOffsets: indexSet)
+    }
+    
+    private func deleteOperation(_ indexSet: IndexSet) {
+        if ingredientData.ingredient != nil {
+            for index in indexSet {
+                let operation = ingredientData.operations[index]
+                ingredientData.ingredient!.removeFromOperations(operation)
+            }
+        }
+        ingredientData.operations.remove(atOffsets: indexSet)
+    }
+    
     private func verifyFields() {
-        if name == "" && ingredient == nil {
+        if ingredientData.name == "" && ingredientData.ingredient == nil {
             emptyTitleWarning = true
             return
         }
         modifyWarning = true
     }
     
-    private func editIngredient() {
-        if ingredient == nil {
-            withAnimation {
+    private func submit() {
+        withAnimation {
+            if ingredientData.ingredient == nil {
                 let newItem = Ingredient(context: viewContext)
-                newItem.name = name
-                for container in containers {
+                newItem.name = ingredientData.name
+                for container in ingredientData.containers {
                     newItem.addToContainers(container)
                 }
-                do {
-                    try viewContext.save()
-                } catch {
-                    // Replace this implementation with code to handle the error appropriately.
-                    // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                    let nsError = error as NSError
-                    fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+                for operation in ingredientData.operations {
+                    newItem.addToOperations(operation)
                 }
+            } else if ingredientData.name != "" {
+                ingredientData.ingredient!.name = ingredientData.name
             }
-            
-        } else {
-            
+            do {
+                try viewContext.save()
+                ingredientData.isShowingIngredientDetailView = false
+            } catch {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                let nsError = error as NSError
+                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
+            }
         }
     }
 }
@@ -161,5 +220,6 @@ struct IngredientAdditionView_Previews: PreviewProvider {
     static var previews: some View {
         IngredientAdditionView()
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+            .environmentObject(IngredientData())
     }
 }

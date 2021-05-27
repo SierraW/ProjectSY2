@@ -8,6 +8,12 @@
         <relationship name="operations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Operation" inverseName="container" inverseEntity="Operation"/>
         <relationship name="steps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Step" inverseName="container" inverseEntity="Step"/>
     </entity>
+    <entity name="Exam" representedClassName="Exam" syncable="YES" codeGenerationType="class">
+        <attribute name="answered" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="correct" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="questions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Question" inverseName="exam" inverseEntity="Question"/>
+    </entity>
     <entity name="Ingredient" representedClassName="Ingredient" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="containers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Container" inverseName="ingredients" inverseEntity="Container"/>
@@ -22,11 +28,27 @@
         <relationship name="ingredient" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="operations" inverseEntity="Ingredient"/>
         <relationship name="productContainer" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="operations" inverseEntity="ProductContainer"/>
     </entity>
+    <entity name="Product" representedClassName="Product" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="series" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Series" inverseName="product" inverseEntity="Series"/>
+        <relationship name="versions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Version" inverseName="product" inverseEntity="Version"/>
+    </entity>
     <entity name="ProductContainer" representedClassName="ProductContainer" syncable="YES" codeGenerationType="class">
-        <attribute name="containerName" optional="YES" attributeType="String"/>
-        <attribute name="productName" optional="YES" attributeType="String"/>
+        <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="operations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Operation" inverseName="productContainer" inverseEntity="Operation"/>
+        <relationship name="question" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Question" inverseName="answer" inverseEntity="Question"/>
         <relationship name="steps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Step" inverseName="productContainer" inverseEntity="Step"/>
+        <relationship name="version" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Version" inverseName="productContainer" inverseEntity="Version"/>
+    </entity>
+    <entity name="Question" representedClassName="Question" syncable="YES" codeGenerationType="class">
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="answer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="question" inverseEntity="ProductContainer"/>
+        <relationship name="exam" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Exam" inverseName="questions" inverseEntity="Exam"/>
+        <relationship name="version" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Version" inverseName="question" inverseEntity="Version"/>
+    </entity>
+    <entity name="Series" representedClassName="Series" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="product" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Product" inverseName="series" inverseEntity="Product"/>
     </entity>
     <entity name="Step" representedClassName="Step" syncable="YES" codeGenerationType="class">
         <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
@@ -34,12 +56,24 @@
         <relationship name="container" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Container" inverseName="steps" inverseEntity="Container"/>
         <relationship name="productContainer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="steps" inverseEntity="ProductContainer"/>
     </entity>
+    <entity name="Version" representedClassName="Version" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <relationship name="product" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Product" inverseName="versions" inverseEntity="Product"/>
+        <relationship name="productContainer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="version" inverseEntity="ProductContainer"/>
+        <relationship name="question" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Question" inverseName="version" inverseEntity="Question"/>
+    </entity>
     <elements>
-        <element name="Ingredient" positionX="-63" positionY="-18" width="128" height="74"/>
-        <element name="ProductContainer" positionX="-63" positionY="-9" width="128" height="89"/>
-        <element name="Step" positionX="-54" positionY="9" width="128" height="89"/>
         <element name="Container" positionX="-36" positionY="27" width="128" height="119"/>
+        <element name="Ingredient" positionX="-63" positionY="-18" width="128" height="74"/>
         <element name="Item" positionX="-27" positionY="81" width="128" height="44"/>
         <element name="Operation" positionX="-18" positionY="90" width="128" height="89"/>
+        <element name="ProductContainer" positionX="-63" positionY="-9" width="128" height="104"/>
+        <element name="Step" positionX="-54" positionY="9" width="128" height="89"/>
+        <element name="Product" positionX="-45" positionY="63" width="128" height="74"/>
+        <element name="Series" positionX="-36" positionY="72" width="128" height="59"/>
+        <element name="Version" positionX="-27" positionY="81" width="128" height="104"/>
+        <element name="Exam" positionX="-18" positionY="90" width="128" height="89"/>
+        <element name="Question" positionX="-9" positionY="99" width="128" height="89"/>
     </elements>
 </model>
