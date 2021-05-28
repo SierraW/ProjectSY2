@@ -111,7 +111,6 @@ struct ContainerAdditionView: View {
             if containerData.container == nil {
                 let newItem = Container(context: viewContext)
                 newItem.name = containerData.name
-                newItem.steps = Set<Step>() as NSSet
                 newItem.operations = Set<Operation>() as NSSet
                 for op in containerData.operations {
                     newItem.addToOperations(op)

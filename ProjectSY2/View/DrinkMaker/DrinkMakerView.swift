@@ -13,11 +13,34 @@ class DrinkMakerData: ObservableObject {
     @Published var question: Question? = nil
     @Published var productContainer: ProductContainer? = nil
     @Published var contianers: [Container] = []
+    @Published var mode: DrinkMakerView.Mode = .Creator
+    @Published var isLoading = false
+    @Published var isDrinkMaking = false
+    
+    func set(_ question: Question) {
+        self.question = question
+        mode = .Practice
+    }
+    
+    func set(_ exam: Exam) {
+        self.exam = exam
+        mode = .Exam
+    }
+    
+    func set() {
+        mode = .Creator
+    }
+    
 }
 
 struct DrinkMakerView: View {
-    @State var product: Product? = nil
-    @State var productContainer: ProductContainer? = nil
+    @EnvironmentObject var drinkMakerData: DrinkMakerData
+    
+    enum Mode: String {
+        case Creator
+        case Practice
+        case Exam
+    }
     
     var body: some View {
         VStack {
@@ -33,7 +56,7 @@ struct DrinkMakerView: View {
                 }
                 .padding(.bottom, 10)
                 HStack {
-                    Text(product?.name ?? "Creator Mode")
+                    Text(drinkMakerData.mode.rawValue)
                         .font(.title2)
                         .bold()
                         .foregroundColor(.gray)

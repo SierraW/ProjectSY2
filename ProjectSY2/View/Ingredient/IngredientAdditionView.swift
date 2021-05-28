@@ -51,27 +51,12 @@ struct IngredientAdditionView: View {
                     .font(.title2)
                     .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
                 HStack {
-                    Text("Assigned Containers")
+                    Text("Unit and Amount Settings")
                         .font(.title3)
-                        .fontWeight(.bold)
+                        .bold()
                     Spacer()
-                    Button("Add") {
-                        isSelectingContainer = true
-                    }
                 }
-                containerList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 300, idealHeight: 900, maxHeight:.infinity, alignment: .topLeading)
-                HStack {
-                    Text("Assigned Operations")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                    Spacer()
-                    Button("Add") {
-                        isSelectingOperation = true
-                    }
-                }
-                operationList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.none, alignment: .topLeading)
+                auView
             }
             .padding()
             Button(action: {
@@ -119,36 +104,17 @@ struct IngredientAdditionView: View {
     }
     
     @ViewBuilder
-    var containerList: some View {
-        if ingredientData.containers.isEmpty {
-            HStack {
-                Text("No assigned container")
-                Spacer()
-            }
-        } else {
-            List {
-                ForEach(ingredientData.containers) { con in
-                    Text(con.name ?? "Error item")
-                }
-                .onDelete(perform: deleteContainer(_:))
+    var auView: some View {
+        VStack {
+            if ingredientData.ingredient == nil {
+                Text("Not available")
+            } else {
+                AmountAndUnitSelectionView()
+                    .environment(\.managedObjectContext, viewContext)
+                    .environmentObject(AmountAndUnitSelectionData(ingredientData.ingredient!))
             }
         }
-    }
-    
-    @ViewBuilder
-    var operationList: some View {
-        if ingredientData.operations.isEmpty {
-            HStack {
-                Text("No assigned operation")
-            }
-        } else {
-            List {
-                ForEach(ingredientData.operations) { ope in
-                    Text(ope.name ?? "Error item")
-                }
-                .onDelete(perform: deleteOperation(_:))
-            }
-        }
+        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
     }
     
     private func addContainer(_ container: Container) {

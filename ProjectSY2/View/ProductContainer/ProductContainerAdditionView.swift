@@ -93,7 +93,6 @@ struct ProductContainerAdditionView: View {
             if productContainer == nil {
                 let newItem = ProductContainer(context: viewContext)
                 newItem.name = name
-                newItem.steps = Set<Step>() as NSSet
                 for op in operations {
                     newItem.addToOperations(op)
                 }

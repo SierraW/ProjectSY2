@@ -26,6 +26,8 @@
 		3BBF0006265F3BB900EDE488 /* OperationEditingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBF0005265F3BB900EDE488 /* OperationEditingView.swift */; };
 		3BBF0008265F41C300EDE488 /* DrinkMakerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBF0007265F41C300EDE488 /* DrinkMakerView.swift */; };
 		3BBF000A265F4C4200EDE488 /* DrinkMakerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BBF0009265F4C4200EDE488 /* DrinkMakerController.swift */; };
+		3BC0A3D9266002C30058C261 /* DrinkMakerContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC0A3D8266002C30058C261 /* DrinkMakerContainerView.swift */; };
+		3BC0A3DC26602E090058C261 /* AmountAndUnitSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BC0A3DB26602E090058C261 /* AmountAndUnitSelectionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +73,8 @@
 		3BBF0005265F3BB900EDE488 /* OperationEditingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OperationEditingView.swift; sourceTree = "<group>"; };
 		3BBF0007265F41C300EDE488 /* DrinkMakerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerView.swift; sourceTree = "<group>"; };
 		3BBF0009265F4C4200EDE488 /* DrinkMakerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerController.swift; sourceTree = "<group>"; };
+		3BC0A3D8266002C30058C261 /* DrinkMakerContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerContainerView.swift; sourceTree = "<group>"; };
+		3BC0A3DB26602E090058C261 /* AmountAndUnitSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AmountAndUnitSelectionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -171,6 +175,7 @@
 		3BAEEFC3265E9EAB0006E415 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				3BC0A3DA26602D230058C261 /* AmountAndUnit */,
 				3BAEEFCE265EA7000006E415 /* Utils */,
 				3BAEEFC7265E9FDB0006E415 /* DrinkMaker */,
 				3BAEEFD9265EE4FF0006E415 /* Operation */,
@@ -212,6 +217,7 @@
 			isa = PBXGroup;
 			children = (
 				3BBF0007265F41C300EDE488 /* DrinkMakerView.swift */,
+				3BC0A3D8266002C30058C261 /* DrinkMakerContainerView.swift */,
 			);
 			path = DrinkMaker;
 			sourceTree = "<group>";
@@ -231,6 +237,14 @@
 				3BBF0005265F3BB900EDE488 /* OperationEditingView.swift */,
 			);
 			path = Operation;
+			sourceTree = "<group>";
+		};
+		3BC0A3DA26602D230058C261 /* AmountAndUnit */ = {
+			isa = PBXGroup;
+			children = (
+				3BC0A3DB26602E090058C261 /* AmountAndUnitSelectionView.swift */,
+			);
+			path = AmountAndUnit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -376,7 +390,9 @@
 				3BBF000A265F4C4200EDE488 /* DrinkMakerController.swift in Sources */,
 				3BAEEFD6265EE0150006E415 /* ProductContainerListView.swift in Sources */,
 				3BAEEF93265E9BC40006E415 /* ProjectSY2App.swift in Sources */,
+				3BC0A3D9266002C30058C261 /* DrinkMakerContainerView.swift in Sources */,
 				3BAEEFE0265EEDA40006E415 /* ProductContainerAdditionView.swift in Sources */,
+				3BC0A3DC26602E090058C261 /* AmountAndUnitSelectionView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
