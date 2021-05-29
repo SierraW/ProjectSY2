@@ -12,7 +12,8 @@ class DrinkMakerData: ObservableObject {
     @Published var exam: Exam? = nil
     @Published var question: Question? = nil
     @Published var productContainer: ProductContainer? = nil
-    @Published var contianers: [Container] = []
+    @Published var steps: [Step] = []
+    @Published var histories: [History] = []
     @Published var mode: DrinkMakerView.Mode = .Creator
     @Published var isLoading = false
     @Published var isDrinkMaking = false
@@ -100,5 +101,6 @@ struct DrinkMakerView: View {
 struct DrinkMakerView_Previews: PreviewProvider {
     static var previews: some View {
         DrinkMakerView()
+            .environmentObject(DrinkMakerData())
     }
 }

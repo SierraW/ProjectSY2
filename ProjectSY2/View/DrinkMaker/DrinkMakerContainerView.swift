@@ -6,6 +6,20 @@
 //
 
 import SwiftUI
+import Combine
+
+class DrinkMakerContainerData: ObservableObject {
+    var container: Container
+    @Published var steps: [Step]
+    
+    init(_ container: Container) {
+        self.container = container
+        self.steps = []
+        if let steps = container.steps {
+            self.steps = Array(steps as! Set<Step>)
+        }
+    }
+}
 
 struct DrinkMakerContainerView: View {
     @Environment(\.managedObjectContext) var viewContext
@@ -18,6 +32,10 @@ struct DrinkMakerContainerView: View {
                 Text("Container")
                 Spacer()
             }
+            Divider()
+            containerStepList
+            selectionMenu
+            mainInteractingSection
         }
         .padding()
     }
@@ -26,6 +44,26 @@ struct DrinkMakerContainerView: View {
     var containerStepList: some View {
         Text("List")
     }
+    
+    @ViewBuilder
+    var selectionMenu: some View {
+        HStack {
+            Text("Ingredients")
+            Divider()
+            Text("Operations")
+        }
+    }
+    
+    @ViewBuilder
+    var ingredientList: some View {
+        Text("I L")
+    }
+    
+    @ViewBuilder
+    var mainInteractingSection: some View {
+        Text("Interacting Area")
+    }
+    
 }
 
 struct DrinkMakerContainerView_Previews: PreviewProvider {

@@ -11,14 +11,15 @@ import Combine
 class AmountAndUnitSelectionData: ObservableObject {
     var showTitle = false
     @Published var ingredient: Ingredient
-    @Published var isEditingUnitIndex: Int? = nil
+    @Published var isEditingUnit: IngredientUnit? = nil
     @Published var unitName: String = ""
-    @Published var isEditingAmountIndex: Int? = nil
+    @Published var isEditingAmount: IngredientUnitAmount? = nil
     @Published var amountName: String = ""
     @Published var units: [IngredientUnit] = []
     @Published var selectedUnit: IngredientUnit? = nil
     @Published var amounts: [IngredientUnitAmount] = []
     @Published var isShowingAUSelectionView = false
+    @Published var warningUnitIsNotSelected = false
     
     init(_ ingredient: Ingredient) {
         self.ingredient = ingredient
@@ -37,8 +38,8 @@ class AmountAndUnitSelectionData: ObservableObject {
     }
     
     private func resetEditingData() {
-        isEditingUnitIndex = nil
-        isEditingAmountIndex = nil
+        isEditingUnit = nil
+        isEditingAmount = nil
     }
     
     func set(_ i: Ingredient) {
@@ -53,40 +54,37 @@ class AmountAndUnitSelectionData: ObservableObject {
     func set(_ iu: IngredientUnit?) {
         selectedUnit = iu
         resetEditingData()
-        amounts = []
+        amounts = Array(selectedUnit!.amounts as! Set<IngredientUnitAmount>)
     }
     
-    func setFocusOnUnit(_ index: Int?) {
-        if let index = index {
-            isEditingUnitIndex = index
-            unitName = units[index].name ?? "Empty Name"
-        } else {
-            isEditingUnitIndex = nil
+    func setFocusOnUnit(_ unit: IngredientUnit?) {
+        if let unit = unit {
+            unitName = unit.name ?? "Empty Name"
         }
+        isEditingUnit = unit
     }
     
-    func setFocusOnAmount(_ index: Int?) {
-        if let index = index {
-            isEditingAmountIndex = index
-            amountName = amounts[index].name ?? "Empty Name"
-        } else {
-            isEditingAmountIndex = nil
+    func setFocusOnAmount(_ amount: IngredientUnitAmount?) {
+        if let amount = amount {
+            amountName = amount.name ?? "Empty Name"
         }
+        isEditingAmount = amount
     }
     
     func addUnit(_ unit: IngredientUnit) {
         ingredient.addToUnits(unit)
-        units = Array(ingredient.units as! Set<IngredientUnit>)
-        setFocusOnUnit(units.count - 1)
+        units.append(unit)
+        setFocusOnUnit(unit)
     }
     
     func addAmount(_ amount: IngredientUnitAmount) {
         if selectedUnit == nil {
+            warningUnitIsNotSelected = true
             return
         }
         selectedUnit!.addToAmounts(amount)
-        amounts = Array(selectedUnit!.amounts as! Set<IngredientUnitAmount>)
-        setFocusOnAmount(amounts.count - 1)
+        amounts.append(amount)
+        setFocusOnAmount(amount)
     }
 }
 
@@ -120,7 +118,7 @@ struct AmountAndUnitSelectionView: View {
                         Text("Amount List")
                         Spacer()
                         Button(action: {
-                            // add amount
+                            addAmount()
                         }, label: {
                             Image(systemName: "plus.square.fill")
                                 .font(.title2)
@@ -132,6 +130,9 @@ struct AmountAndUnitSelectionView: View {
             }
         }
         .padding()
+        .alert(isPresented: $amountAndUnitSelectionData.warningUnitIsNotSelected, content: {
+            Alert(title: Text("Please select a unit first."))
+        })
     }
     
     @ViewBuilder
@@ -157,30 +158,29 @@ struct AmountAndUnitSelectionView: View {
             }
         } else {
             List {
-                ForEach(amountAndUnitSelectionData.units.indices) { unitIndex in
-                    if let index = amountAndUnitSelectionData.isEditingUnitIndex, index == unitIndex {
+                ForEach(amountAndUnitSelectionData.units) { unit in
+                    if unit == amountAndUnitSelectionData.isEditingUnit {
                         HStack {
                             TextField("Unit Name", text: $amountAndUnitSelectionData.unitName)
                             Spacer()
-                            Button(action: {
-                                saveUnit()
-                            }, label: {
-                                Image(systemName: "pencil")
-                                    .foregroundColor(.green)
-                            })
-                            Button(action: {
-                                amountAndUnitSelectionData.setFocusOnUnit(nil)
-                            }, label: {
-                                Image(systemName: "clear")
-                                    .foregroundColor(.red)
-                            })
+                            Image(systemName: "pencil")
+                                .foregroundColor(.green)
+                                .gesture(TapGesture().onEnded({ _ in
+                                    saveUnit()
+                                }))
+                            Image(systemName: "clear")
+                                .foregroundColor(.red)
+                                .gesture(TapGesture().onEnded({ _ in
+                                    amountAndUnitSelectionData.setFocusOnUnit(nil)
+                                }))
                         }
-                    } else if let unit = amountAndUnitSelectionData.units[unitIndex], let selected = amountAndUnitSelectionData.selectedUnit, unit == selected {
+                    } else if let selected = amountAndUnitSelectionData.selectedUnit, unit == selected {
                         HStack {
-                            ZStack {
-                                Color.gray
-                                Text(amountAndUnitSelectionData.units[unitIndex].name!)
+                            HStack {
+                                Spacer()
+                                Text("> \(unit.name!)")
                                     .bold()
+                                Spacer()
                             }
                             .gesture(TapGesture().onEnded({ _ in
                                 amountAndUnitSelectionData.set(nil)
@@ -189,33 +189,27 @@ struct AmountAndUnitSelectionView: View {
                         }
                     } else {
                         HStack {
-                            Text(amountAndUnitSelectionData.units[unitIndex].name!)
+                            HStack {
+                                Spacer()
+                                Text(unit.name!)
+                                Spacer()
+                            }
                                 .gesture(
                                     TapGesture()
                                         .onEnded { _ in
-                                            amountAndUnitSelectionData.set(amountAndUnitSelectionData.units[unitIndex])
+                                            amountAndUnitSelectionData.set(unit)
                                         }
                                 )
-                            Spacer()
                             Image(systemName: "pencil")
                                 .foregroundColor(.blue)
                                 .gesture(TapGesture().onEnded({ _ in
-                                    amountAndUnitSelectionData.setFocusOnUnit(0)
+                                    amountAndUnitSelectionData.setFocusOnUnit(unit)
                                 }))
                         }
                     }
                 }
             }
         }
-    }
-    
-    var editButton: some View {
-        return Button(action: {
-            amountAndUnitSelectionData.setFocusOnUnit(0)
-        }, label: {
-            Image(systemName: "pencil")
-                .foregroundColor(.blue)
-        })
     }
     
     @ViewBuilder
@@ -237,34 +231,34 @@ struct AmountAndUnitSelectionView: View {
             }
         } else {
             List {
-                ForEach(amountAndUnitSelectionData.amounts.indices) { amountIndex in
-                    if let index = amountAndUnitSelectionData.isEditingAmountIndex, index == amountIndex {
+                ForEach(amountAndUnitSelectionData.amounts) { amount in
+                    if amount == amountAndUnitSelectionData.isEditingAmount {
                         HStack {
                             TextField("Amount Name", text: $amountAndUnitSelectionData.amountName)
                             Spacer()
-                            Button(action: {
-                                saveUnit()
-                            }, label: {
-                                Image(systemName: "pencil")
-                                    .foregroundColor(.green)
-                            })
-                            Button(action: {
-                                amountAndUnitSelectionData.setFocusOnAmount(nil)
-                            }, label: {
-                                Image(systemName: "clear")
-                                    .foregroundColor(.red)
-                            })
+                            Image(systemName: "pencil")
+                                .foregroundColor(.green)
+                                .gesture(TapGesture().onEnded({ _ in
+                                    saveAmount()
+                                }))
+                            Image(systemName: "clear")
+                                .foregroundColor(.red)
+                                .gesture(TapGesture().onEnded({ _ in
+                                    amountAndUnitSelectionData.setFocusOnAmount(nil)
+                                }))
                         }
                     } else {
                         HStack {
-                            Text(amountAndUnitSelectionData.amounts[amountIndex].name!)
-                            Spacer()
-                            Button(action: {
-                                amountAndUnitSelectionData.setFocusOnAmount(amountIndex)
-                            }, label: {
-                                Image(systemName: "pencil")
-                                    .foregroundColor(.blue)
-                            })
+                            HStack {
+                                Spacer()
+                                Text(amount.name!)
+                                Spacer()
+                            }
+                            Image(systemName: "pencil")
+                                .foregroundColor(.blue)
+                                .gesture(TapGesture().onEnded({ _ in
+                                    amountAndUnitSelectionData.setFocusOnAmount(amount)
+                                }))
                         }
                     }
                 }
@@ -290,8 +284,7 @@ struct AmountAndUnitSelectionView: View {
         if !verifyUnitNameField() {
             return
         }
-        if let index = amountAndUnitSelectionData.isEditingUnitIndex {
-            let unit = amountAndUnitSelectionData.units[index]
+        if let unit = amountAndUnitSelectionData.isEditingUnit {
             unit.name = amountAndUnitSelectionData.unitName
             save()
             amountAndUnitSelectionData.setFocusOnUnit(nil)
@@ -308,8 +301,7 @@ struct AmountAndUnitSelectionView: View {
         if !verifyAmountNameField() {
             return
         }
-        if let index = amountAndUnitSelectionData.isEditingAmountIndex {
-            let amount = amountAndUnitSelectionData.amounts[index]
+        if let amount = amountAndUnitSelectionData.isEditingAmount {
             amount.name = amountAndUnitSelectionData.amountName
             save()
             amountAndUnitSelectionData.setFocusOnAmount(nil)
