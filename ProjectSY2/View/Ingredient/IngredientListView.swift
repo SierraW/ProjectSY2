@@ -14,6 +14,7 @@ struct IngredientListView: View {
                   animation: .default)
     var ingredients: FetchedResults<Ingredient>
     var isDeleteDisabled = false
+    var selected: ((Ingredient) -> Void)?
     
     var body: some View {
         ZStack {
@@ -41,13 +42,19 @@ struct IngredientListView: View {
     @ViewBuilder
     var listView: some View {
         if ingredients.isEmpty {
-            Text("Empty")
-                .font(.headline)
+            HStack {
+                Text("Empty")
+                Spacer()
+            }
         } else {
             List {
                 ForEach(ingredients) { item in
                     Button(item.name ?? "Error item") {
-                        ingredientData.set(item)
+                        if selected == nil {
+                            ingredientData.set(item)
+                        } else {
+                            selected!(item)
+                        }
                     }
                 }
                 .onDelete(perform: removeIngredients)

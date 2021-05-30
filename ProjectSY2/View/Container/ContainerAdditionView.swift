@@ -13,14 +13,20 @@ class ContainerData: ObservableObject {
     @Published var isShowingContainerDetailView = false
     @Published var name = ""
     @Published var operations: [Operation] = []
+    @Published var ingredients: [Ingredient] = []
     
     func set(_ container: Container?) {
-        if let container = container, let operations = container.operations {
-            self.operations = Array(operations as! Set<Operation>)
-            self.name = ""
-        } else {
-            self.operations = []
-            self.name = ""
+        self.operations = []
+        self.ingredients = []
+        self.name = ""
+        
+        if let container = container {
+            if let operations = container.operations {
+                self.operations = Array(operations as! Set<Operation>)
+            }
+            if let ingredients = container.ingredients {
+                self.ingredients = Array(ingredients as! Set<Ingredient>)
+            }
         }
         self.container = container
         self.isShowingContainerDetailView = true
@@ -45,6 +51,17 @@ struct ContainerAdditionView: View {
                     .font(.title2)
                     .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
                 HStack {
+                    Text("Assigned Ingredients")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    Spacer()
+                    Button("Add") {
+                        // add Ingredient
+                    }
+                }
+                ingredientList
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.infinity, alignment: .topLeading)
+                HStack {
                     Text("Assigned Operations")
                         .font(.title3)
                         .fontWeight(.bold)
@@ -54,7 +71,7 @@ struct ContainerAdditionView: View {
                     }
                 }
                 operationList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.infinity, alignment: .topLeading)
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.zero, alignment: .topLeading)
             }
             .padding()
             Button(action: {
@@ -93,6 +110,22 @@ struct ContainerAdditionView: View {
             List {
                 ForEach (containerData.operations) { ope in
                     Text(ope.name ?? "Error item")
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    var ingredientList: some View {
+        if containerData.ingredients.isEmpty {
+            HStack {
+                Text("No assigned ingredient")
+                Spacer()
+            }
+        } else {
+            List {
+                ForEach (containerData.ingredients) { ing in
+                    Text(ing.name ?? "Error item")
                 }
             }
         }

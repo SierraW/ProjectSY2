@@ -25,8 +25,10 @@ struct ContainerListView: View {
                     Text("Containers")
                         .font(.title)
                     Spacer()
-                    Button("Add") {
-                        containerData.set(nil)
+                    if selected == nil {
+                        Button("Add") {
+                            containerData.set(nil)
+                        }
                     }
                 }
                 containerList

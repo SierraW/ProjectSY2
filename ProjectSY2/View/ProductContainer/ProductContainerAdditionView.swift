@@ -6,15 +6,56 @@
 //
 
 import SwiftUI
+import Combine
+
+class ProductContainerAdditionData: ObservableObject {
+    @Published var productContainer: ProductContainer?
+    @Published var name: String
+    @Published var operations: [Operation]
+    @Published var ingredients: [Ingredient]
+    @Published var emptyTitleWarning = false
+    @Published var modifyWarning = false
+    @Published var isShowingPCAddtionView = false
+    
+    init(_ productContainer: ProductContainer?) {
+        self.name = ""
+        self.operations = []
+        self.ingredients = []
+        
+        if let pc = productContainer {
+            if let operations = pc.operations {
+                self.operations = Array(operations as! Set<Operation>)
+            }
+            if let ingredients = pc.ingredients {
+                self.ingredients = Array(ingredients as! Set<Ingredient>)
+            }
+        }
+    }
+    
+    func set(_ productContainer: ProductContainer?) {
+        name = ""
+        operations = []
+        ingredients = []
+        emptyTitleWarning = false
+        modifyWarning = false
+        isShowingPCAddtionView = true
+        if let pc = productContainer {
+            self.productContainer = pc
+            if let opes = pc.operations {
+                operations = Array(opes as! Set<Operation>)
+            }
+            if let ings = pc.ingredients {
+                ingredients = Array(ings as! Set<Ingredient>)
+            }
+        } else {
+            self.productContainer = nil
+        }
+    }
+}
 
 struct ProductContainerAdditionView: View {
     @Environment(\.managedObjectContext) var viewContext
-    
-    var productContainer: ProductContainer? = nil
-    @State var name = ""
-    @State var operations: [Operation] = []
-    @State var emptyTitleWarning = false
-    @State var modifyWarning = false
+    @EnvironmentObject var data: ProductContainerAdditionData
     
     var body: some View {
         VStack {
@@ -23,9 +64,20 @@ struct ProductContainerAdditionView: View {
                     title
                     Spacer()
                 }
-                TextField("Edit name...", text: $name)
+                TextField("Edit name...", text: $data.name)
                     .font(.title2)
-                    .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
+                    .border(data.emptyTitleWarning ? Color.red : Color.clear, width: 2)
+                HStack {
+                    Text("Assigned Ingredients")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                    Spacer()
+                    Button("Add") {
+                        // add ingredient
+                    }
+                }
+                ingredientList
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.infinity, alignment: .topLeading)
                 HStack {
                     Text("Assigned Operations")
                         .font(.title3)
@@ -36,18 +88,18 @@ struct ProductContainerAdditionView: View {
                     }
                 }
                 operationList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.infinity, alignment: .topLeading)
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.zero, alignment: .topLeading)
             }
             .padding()
             Button(action: {
-                
+                verifyFields()
             }, label: {
                 SubmitButtonView(title: "Submit")
             })
         }
-        .alert(isPresented: $modifyWarning, content: {
-            Alert(title: Text("Changes about to apply"), message: Text("Name of the product container: \(name), and the operations listed above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
-                self.modifyWarning = false
+        .alert(isPresented: $data.modifyWarning, content: {
+            Alert(title: Text("Changes about to apply"), message: Text("Name of the product container: \(data.name), and the operations listed above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
+                data.modifyWarning = false
                 self.submit()
             }))
         })
@@ -55,50 +107,67 @@ struct ProductContainerAdditionView: View {
     
     @ViewBuilder
     var title: some View {
-        if productContainer == nil {
+        if data.productContainer == nil {
             Text("New Product Container")
                 .font(.title)
         } else {
-            Text(productContainer!.name ?? "Error item")
+            Text(data.productContainer!.name ?? "Error item")
                 .font(.title)
         }
     }
     
     @ViewBuilder
     var operationList: some View {
-        if operations.isEmpty {
+        if data.operations.isEmpty {
             HStack {
                 Text("No assigned operation")
                 Spacer()
             }
         } else {
             List {
-                ForEach (operations) { ope in
+                ForEach (data.operations) { ope in
                     Text(ope.name ?? "Error item")
                 }
             }
         }
     }
     
+    @ViewBuilder
+    var ingredientList: some View {
+        if data.ingredients.isEmpty {
+            HStack {
+                Text("No assigned ingredient")
+                Spacer()
+            }
+        } else {
+            List {
+                ForEach (data.ingredients) { ing in
+                    Text(ing.name ?? "Error item")
+                }
+            }
+        }
+    }
+    
     private func verifyFields() {
-        if name == "" && productContainer == nil {
-            emptyTitleWarning = true
+        if data.name == "" && data.productContainer == nil {
+            data.emptyTitleWarning = true
             return
         }
-        modifyWarning = true
+        data.modifyWarning = true
     }
     
     private func submit() {
         withAnimation {
-            if productContainer == nil {
+            if data.productContainer == nil {
                 let newItem = ProductContainer(context: viewContext)
-                newItem.name = name
-                for op in operations {
+                newItem.name = data.name
+                for op in data.operations {
                     newItem.addToOperations(op)
                 }
             }
             do {
                 try viewContext.save()
+                data.isShowingPCAddtionView = false
             } catch {
                 // Replace this implementation with code to handle the error appropriately.
                 // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
@@ -113,5 +182,6 @@ struct ProductContainerAdditionView_Previews: PreviewProvider {
     static var previews: some View {
         ProductContainerAdditionView()
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+            .environmentObject(ProductContainerAdditionData(nil))
     }
 }

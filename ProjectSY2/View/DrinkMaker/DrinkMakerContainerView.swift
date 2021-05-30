@@ -9,66 +9,152 @@ import SwiftUI
 import Combine
 
 class DrinkMakerContainerData: ObservableObject {
-    var container: Container
+    var history: History?
     @Published var steps: [Step]
+    @Published var ingredients: [Ingredient]
+    @Published var operations: [Operation]
+    @Published var isSelectedIngredient = false
+    @Published var ingredientNotEmpty = false
+    @Published var operationNotEmpty = false
+    @Published var selectedIngredient: Ingredient? = nil
+    @Published var selectedOperation: Operation? = nil
     
-    init(_ container: Container) {
-        self.container = container
+    init(_ history: History?) {
+        self.history = history
         self.steps = []
-        if let steps = container.steps {
+        self.ingredients = []
+        self.operations = []
+        if let steps = history?.steps {
             self.steps = Array(steps as! Set<Step>)
+        }
+        if let operations = history?.container?.operations, operations.count > 0 {
+            operationNotEmpty = true
+            self.operations = Array(operations as! Set<Operation>)
+        }
+        if let ingredients = history?.container?.ingredients, ingredients.count > 0 {
+            ingredientNotEmpty = true
+            isSelectedIngredient = true
+            self.ingredients = Array(ingredients as! Set<Ingredient>)
         }
     }
 }
 
 struct DrinkMakerContainerView: View {
     @Environment(\.managedObjectContext) var viewContext
-    @State var name: String
-    @State var steps: [Step]
+    @EnvironmentObject var data: DrinkMakerContainerData
     
     var body: some View {
         VStack {
-            HStack {
-                Text("Container")
-                Spacer()
+            VStack {
+                HStack {
+                    Text("Container")
+                    Spacer()
+                }
+                Divider()
+                containerStepList
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 200, maxHeight: 200, alignment: .center)
+                selectionMenu
+                    .frame(minWidth: 100, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 50, maxHeight: 50, alignment: .center)
+                mainInteractingSection
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 450, idealHeight: 450, maxHeight: .infinity, alignment: .center)
             }
-            Divider()
-            containerStepList
-            selectionMenu
-            mainInteractingSection
+            .padding()
+            Button(action: {
+                
+            }, label: {
+                SubmitButtonView(title: "Submit")
+            })
         }
-        .padding()
     }
     
     @ViewBuilder
     var containerStepList: some View {
-        Text("List")
+        if data.steps.isEmpty {
+            Text("Empty Container")
+        } else {
+            List {
+                ForEach(data.steps) { step in
+                    Text(step.stepName ?? "Error item")
+                }
+            }
+        }
     }
     
     @ViewBuilder
     var selectionMenu: some View {
         HStack {
-            Text("Ingredients")
+            Spacer()
+            if data.ingredientNotEmpty {
+                Text("Ingredients")
+                    .foregroundColor(.blue)
+            } else {
+                Text("Ingredients")
+                    .foregroundColor(.gray)
+            }
+            Spacer()
             Divider()
-            Text("Operations")
+            Spacer()
+            if data.operationNotEmpty {
+                Text("Operations")
+                    .foregroundColor(.blue)
+            } else {
+                Text("Operations")
+                    .foregroundColor(.gray)
+            }
+            Spacer()
         }
     }
     
     @ViewBuilder
-    var ingredientList: some View {
-        Text("I L")
+    var ingredientAction: some View {
+        HStack {
+            List {
+                ForEach(data.ingredients) { ingredient in
+                    Button(ingredient.name ?? "Error item") {
+                        data.selectedIngredient = ingredient
+                    }
+                }
+                if data.selectedIngredient != nil {
+                    AmountAndUnitSelectionView()
+                        .environment(\.managedObjectContext, viewContext)
+                        .environmentObject(AmountAndUnitSelectionData(data.selectedIngredient!))
+                }
+            }
+        }
+    }
+    
+    @ViewBuilder
+    var operationAction: some View {
+        List {
+            ForEach(data.operations) { operation in
+                Text(operation.name ?? "Error item")
+            }
+        }
     }
     
     @ViewBuilder
     var mainInteractingSection: some View {
-        Text("Interacting Area")
+        if data.ingredientNotEmpty || data.operationNotEmpty {
+            if data.isSelectedIngredient {
+                ingredientAction
+            } else {
+                operationAction
+            }
+        } else {
+            VStack {
+                Spacer()
+                Text("Not available")
+                Spacer()
+            }
+        }
     }
     
 }
 
 struct DrinkMakerContainerView_Previews: PreviewProvider {
     static var previews: some View {
-        DrinkMakerContainerView(name: "Gugubird", steps: [])
+        DrinkMakerContainerView()
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+            .environmentObject(DrinkMakerContainerData(nil))
     }
 }
