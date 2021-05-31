@@ -39,6 +39,8 @@ struct ContainerAdditionView: View {
     @EnvironmentObject var containerData: ContainerData
     @State var emptyTitleWarning = false
     @State var modifyWarning = false
+    @State var isShowingIngredientSelectionView = false
+    @State var isShowingOperationSelectionView = false
     
     var body: some View {
         VStack {
@@ -56,7 +58,7 @@ struct ContainerAdditionView: View {
                         .fontWeight(.bold)
                     Spacer()
                     Button("Add") {
-                        // add Ingredient
+                        isShowingIngredientSelectionView = true
                     }
                 }
                 ingredientList
@@ -67,7 +69,7 @@ struct ContainerAdditionView: View {
                         .fontWeight(.bold)
                     Spacer()
                     Button("Add") {
-                        // add operations
+                        isShowingOperationSelectionView = true
                     }
                 }
                 operationList
@@ -80,6 +82,16 @@ struct ContainerAdditionView: View {
                 SubmitButtonView(title: "Submit")
             })
         }
+        .sheet(isPresented: $isShowingIngredientSelectionView, content: {
+            IngredientListView()
+                .environment(\.managedObjectContext, viewContext)
+                .environmentObject(IngredientData())
+        })
+        .sheet(isPresented: $isShowingOperationSelectionView, content: {
+            OperationListView()
+                .environment(\.managedObjectContext, viewContext)
+                .environmentObject(OperationData())
+        })
         .alert(isPresented: $modifyWarning, content: {
             Alert(title: Text("Changes about to apply"), message: Text("Name of the container: \(containerData.name), and the operations listed above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
                 self.modifyWarning = false

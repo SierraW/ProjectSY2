@@ -105,6 +105,8 @@ struct DrinkMakerView: View {
                 drinkMakerData.steps = []
                 drinkMakerData.isShowingPCSelectionView = false
             }
+            .environment(\.managedObjectContext, viewContext)
+            .environmentObject(ProductContainerAdditionData(nil))
         })
         .sheet(isPresented: $drinkMakerData.isShowingContainerSelectionView, content: {
             ContainerListView(isDeleteDisabled: true) { container in
@@ -148,6 +150,7 @@ struct DrinkMakerView: View {
                     }
                 }
             }
+            .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 150, alignment: .topLeading)
         }
     }
     
