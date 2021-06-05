@@ -49,11 +49,22 @@ struct IngredientListView: View {
         } else {
             List {
                 ForEach(ingredients) { item in
-                    Button(item.name ?? "Error item") {
-                        if selected == nil {
+                    if selected == nil {
+                        Button(item.name ?? "Error item") {
                             ingredientData.set(item)
-                        } else {
-                            selected!(item)
+                        }
+                    } else {
+                        HStack {
+                            Text(item.name ?? "Error item")
+                                .gesture(TapGesture().onEnded({ _ in
+                                    selected!(item)
+                                }))
+                            Spacer()
+                            Image(systemName: "pencil")
+                                .foregroundColor(.blue)
+                                .gesture(TapGesture().onEnded({ _ in
+                                    ingredientData.set(item)
+                                }))
                         }
                     }
                 }

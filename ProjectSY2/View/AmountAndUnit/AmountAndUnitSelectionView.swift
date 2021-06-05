@@ -27,6 +27,9 @@ class AmountAndUnitSelectionData: ObservableObject {
         if let us = ingredient.units {
             units = Array(us as! Set<IngredientUnit>)
         }
+        if units.count > 0 {
+            set(units[0])
+        }
     }
     
     private func resetEverythingExceptIngredient() {
@@ -54,7 +57,9 @@ class AmountAndUnitSelectionData: ObservableObject {
     func set(_ iu: IngredientUnit?) {
         selectedUnit = iu
         resetEditingData()
-        amounts = Array(selectedUnit!.amounts as! Set<IngredientUnitAmount>)
+        if let iu = iu, let amounts = iu.amounts {
+            self.amounts = Array(amounts as! Set<IngredientUnitAmount>)
+        }
     }
     
     func setFocusOnUnit(_ unit: IngredientUnit?) {
@@ -91,28 +96,12 @@ class AmountAndUnitSelectionData: ObservableObject {
 struct AmountAndUnitSelectionView: View {
     @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var amountAndUnitSelectionData: AmountAndUnitSelectionData
+    var selected: ((IngredientUnit, IngredientUnitAmount) -> Void)?
     
     var body: some View {
         VStack {
             title
             HStack {
-                VStack {
-                    HStack {
-                        Text("Unit List")
-                        Spacer()
-                        Button(action: {
-                            addUnit()
-                        }, label: {
-                            Image(systemName: "plus.square")
-                                .font(.title2)
-                        })
-                    }
-                    unitList
-                    Spacer()
-                }
-                Spacer()
-                Divider()
-                Spacer()
                 VStack {
                     HStack {
                         Text("Amount List")
@@ -125,6 +114,23 @@ struct AmountAndUnitSelectionView: View {
                         })
                     }
                     amountList
+                    Spacer()
+                }
+                Spacer()
+                Divider()
+                Spacer()
+                VStack {
+                    HStack {
+                        Text("Unit List")
+                        Spacer()
+                        Button(action: {
+                            addUnit()
+                        }, label: {
+                            Image(systemName: "plus.square")
+                                .font(.title2)
+                        })
+                    }
+                    unitList
                     Spacer()
                 }
             }
@@ -254,6 +260,11 @@ struct AmountAndUnitSelectionView: View {
                                 Text(amount.name!)
                                 Spacer()
                             }
+                            .gesture(TapGesture().onEnded({ _ in
+                                if selected != nil {
+                                    selected!(amountAndUnitSelectionData.selectedUnit!, amount)
+                                }
+                            }))
                             Image(systemName: "pencil")
                                 .foregroundColor(.blue)
                                 .gesture(TapGesture().onEnded({ _ in

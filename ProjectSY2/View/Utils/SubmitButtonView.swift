@@ -10,12 +10,14 @@ import SwiftUI
 struct SubmitButtonView: View {
     var title: String
     var font: CGFloat = 20
+    var foregroundColor = Color.white
+    var backgroundColor = Color.green
     
     var body: some View {
         ZStack{
-            Color.green.edgesIgnoringSafeArea(.horizontal)
+            backgroundColor.edgesIgnoringSafeArea(.horizontal)
             Text(title)
-                .foregroundColor(Color.white)
+                .foregroundColor(foregroundColor)
                 .font(.system(size: font, weight: .bold, design: .default))
         }
         .frame(height: 50)

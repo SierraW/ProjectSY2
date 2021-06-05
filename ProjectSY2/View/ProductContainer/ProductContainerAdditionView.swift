@@ -51,11 +51,27 @@ class ProductContainerAdditionData: ObservableObject {
             self.productContainer = nil
         }
     }
+    
+    func add(_ ingredient: Ingredient) {
+        if let pc = productContainer {
+            ingredients.append(ingredient)
+            pc.addToIngredients(ingredient)
+        }
+    }
+    
+    func add(_ operation: Operation) {
+        if let pc = productContainer {
+            operations.append(operation)
+            pc.addToOperations(operation)
+        }
+    }
 }
 
 struct ProductContainerAdditionView: View {
     @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var data: ProductContainerAdditionData
+    @State var isShowingIngredientSelectionView = false
+    @State var isShowingOperationSelectionView = false
     
     var body: some View {
         VStack {
@@ -67,28 +83,7 @@ struct ProductContainerAdditionView: View {
                 TextField("Edit name...", text: $data.name)
                     .font(.title2)
                     .border(data.emptyTitleWarning ? Color.red : Color.clear, width: 2)
-                HStack {
-                    Text("Assigned Ingredients")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                    Spacer()
-                    Button("Add") {
-                        // add ingredient
-                    }
-                }
-                ingredientList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.infinity, alignment: .topLeading)
-                HStack {
-                    Text("Assigned Operations")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                    Spacer()
-                    Button("Add") {
-                        // add operations
-                    }
-                }
-                operationList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.zero, alignment: .topLeading)
+                assignedActionSection
             }
             .padding()
             Button(action: {
@@ -97,6 +92,22 @@ struct ProductContainerAdditionView: View {
                 SubmitButtonView(title: "Submit")
             })
         }
+        .sheet(isPresented: $isShowingIngredientSelectionView, content: {
+            IngredientListView { ig in
+                data.add(ig)
+                isShowingIngredientSelectionView = false
+            }
+            .environment(\.managedObjectContext, viewContext)
+            .environmentObject(IngredientData())
+        })
+        .sheet(isPresented: $isShowingOperationSelectionView, content: {
+            OperationListView { op in
+                data.add(op)
+                isShowingOperationSelectionView = false
+            }
+            .environment(\.managedObjectContext, viewContext)
+            .environmentObject(OperationData())
+        })
         .alert(isPresented: $data.modifyWarning, content: {
             Alert(title: Text("Changes about to apply"), message: Text("Name of the product container: \(data.name), and the operations listed above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
                 data.modifyWarning = false
@@ -145,6 +156,44 @@ struct ProductContainerAdditionView: View {
                     Text(ing.name ?? "Error item")
                 }
             }
+        }
+    }
+    
+    @ViewBuilder
+    var assignedActionSection: some View {
+        if data.productContainer == nil {
+            VStack {
+                Spacer()
+                HStack{
+                    Spacer()
+                    Text("Not available")
+                    Spacer()
+                }
+                Spacer()
+            }
+        } else {
+            HStack {
+                Text("Assigned Ingredients")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                Spacer()
+                Button("Add") {
+                    isShowingIngredientSelectionView = true
+                }
+            }
+            ingredientList
+                .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.infinity, alignment: .topLeading)
+            HStack {
+                Text("Assigned Operations")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                Spacer()
+                Button("Add") {
+                    isShowingOperationSelectionView = true
+                }
+            }
+            operationList
+                .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight: 500, alignment: .topLeading)
         }
     }
     

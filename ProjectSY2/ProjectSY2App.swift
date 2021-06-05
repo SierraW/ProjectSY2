@@ -13,9 +13,8 @@ struct ProjectSY2App: App {
 
     var body: some Scene {
         WindowGroup {
-            IngredientListView()
-                .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                .environmentObject(IngredientData())
+            LandingView()
+                .environmentObject(LandingViewData())
         }
     }
 }

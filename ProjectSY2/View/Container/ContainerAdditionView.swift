@@ -11,6 +11,7 @@ import Combine
 class ContainerData: ObservableObject {
     @Published var container: Container? = nil
     @Published var isShowingContainerDetailView = false
+    @Published var selectedIngredient: Ingredient? = nil
     @Published var name = ""
     @Published var operations: [Operation] = []
     @Published var ingredients: [Ingredient] = []
@@ -30,6 +31,33 @@ class ContainerData: ObservableObject {
         }
         self.container = container
         self.isShowingContainerDetailView = true
+    }
+    
+    func add(_ ingredient: Ingredient) {
+        if let container = container {
+            container.addToIngredients(ingredient)
+            ingredients.append(ingredient)
+        }
+    }
+    
+    func removeFromIngredients(_ indexSet: IndexSet) {
+        if let container = container {
+            for index in indexSet {
+                let ing = ingredients[index]
+                container.removeFromIngredients(ing)
+            }
+        }
+        ingredients.remove(atOffsets: indexSet)
+    }
+    
+    func removeFromOperations(_ indexSet: IndexSet) {
+        if let container = container {
+            for index in indexSet {
+                let ope = operations[index]
+                container.removeFromOperations(ope)
+            }
+        }
+        operations.remove(atOffsets: indexSet)
     }
 }
 
@@ -73,7 +101,7 @@ struct ContainerAdditionView: View {
                     }
                 }
                 operationList
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight:.zero, alignment: .topLeading)
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight: 500, alignment: .topLeading)
             }
             .padding()
             Button(action: {
@@ -83,7 +111,10 @@ struct ContainerAdditionView: View {
             })
         }
         .sheet(isPresented: $isShowingIngredientSelectionView, content: {
-            IngredientListView()
+            IngredientListView() { ig in
+                containerData.add(ig)
+                isShowingIngredientSelectionView = false
+            }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(IngredientData())
         })
@@ -123,6 +154,9 @@ struct ContainerAdditionView: View {
                 ForEach (containerData.operations) { ope in
                     Text(ope.name ?? "Error item")
                 }
+                .onDelete(perform: { indexSet in
+                    containerData.removeFromOperations(indexSet)
+                })
             }
         }
     }
@@ -134,11 +168,35 @@ struct ContainerAdditionView: View {
                 Text("No assigned ingredient")
                 Spacer()
             }
-        } else {
+        } else if containerData.selectedIngredient == nil {
             List {
                 ForEach (containerData.ingredients) { ing in
-                    Text(ing.name ?? "Error item")
+                    Button(ing.name ?? "Error item") {
+                        containerData.selectedIngredient = ing
+                    }
                 }
+                .onDelete(perform: { indexSet in
+                    containerData.removeFromIngredients(indexSet)
+                })
+            }
+        } else {
+            VStack {
+                HStack {
+                    Button(action: {
+                        containerData.selectedIngredient = nil
+                    }, label: {
+                        HStack {
+                            Image(systemName: "chevron.backward")
+                                .foregroundColor(.blue)
+                            Text(containerData.selectedIngredient?.name ?? "Error item")
+                        }
+                    })
+                    Spacer()
+                }
+                .padding(.top, 5)
+                AmountAndUnitSelectionView()
+                    .environment(\.managedObjectContext, viewContext)
+                    .environmentObject(AmountAndUnitSelectionData(containerData.selectedIngredient!))
             }
         }
     }

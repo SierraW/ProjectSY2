@@ -37,6 +37,13 @@ class DrinkMakerContainerData: ObservableObject {
             self.ingredients = Array(ingredients as! Set<Ingredient>)
         }
     }
+    
+    func add(_ step: Step) {
+        if let history = history {
+            history.addToSteps(step)
+        }
+        steps.append(step)
+    }
 }
 
 struct DrinkMakerContainerView: View {
@@ -59,11 +66,6 @@ struct DrinkMakerContainerView: View {
                     .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 450, idealHeight: 450, maxHeight: .infinity, alignment: .center)
             }
             .padding()
-            Button(action: {
-                
-            }, label: {
-                SubmitButtonView(title: "Submit")
-            })
         }
     }
     
@@ -74,7 +76,7 @@ struct DrinkMakerContainerView: View {
         } else {
             List {
                 ForEach(data.steps) { step in
-                    Text(step.stepName ?? "Error item")
+                    Text(step.name ?? "Error item")
                 }
             }
         }
@@ -108,18 +110,34 @@ struct DrinkMakerContainerView: View {
     @ViewBuilder
     var ingredientAction: some View {
         HStack {
-            List {
-                ForEach(data.ingredients) { ingredient in
-                    Button(ingredient.name ?? "Error item") {
-                        data.selectedIngredient = ingredient
+            if data.selectedIngredient == nil {
+                List {
+                    ForEach(data.ingredients) { ingredient in
+                        Button(ingredient.name ?? "Error item") {
+                            data.selectedIngredient = ingredient
+                        }
                     }
                 }
-                if data.selectedIngredient != nil {
-                    AmountAndUnitSelectionView()
+            } else {
+                VStack {
+                    HStack {
+                        Image(systemName: "chevron.backward")
+                            .gesture(TapGesture().onEnded({ _ in
+                                data.selectedIngredient = nil
+                            }))
+                        Text(data.selectedIngredient!.name ?? "Error item")
+                        Spacer()
+                    }
+                    AmountAndUnitSelectionView() { unit, amount in
+                        let step = Step(context: viewContext)
+                        step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(data.selectedIngredient?.name ?? "Error item")"
+                        data.add(step)
+                    }
                         .environment(\.managedObjectContext, viewContext)
                         .environmentObject(AmountAndUnitSelectionData(data.selectedIngredient!))
                 }
             }
+            
         }
     }
     
@@ -149,6 +167,9 @@ struct DrinkMakerContainerView: View {
         }
     }
     
+    func submit() {
+        
+    }
 }
 
 struct DrinkMakerContainerView_Previews: PreviewProvider {
