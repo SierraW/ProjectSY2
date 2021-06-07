@@ -13,18 +13,21 @@ struct IngredientListView: View {
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Ingredient.name, ascending: true)],
                   animation: .default)
     var ingredients: FetchedResults<Ingredient>
-    var isDeleteDisabled = false
+    var showTitle = true
+    var editDisabled = false
     var selected: ((Ingredient) -> Void)?
     
     var body: some View {
         ZStack {
             VStack {
-                HStack {
-                    Text("Ingredient")
-                        .font(.title)
-                    Spacer()
-                    Button("Add") {
-                        ingredientData.set(nil)
+                if showTitle {
+                    HStack {
+                        Text("Ingredient")
+                            .font(.title)
+                        Spacer()
+                        Button("Add") {
+                            ingredientData.set(nil)
+                        }
                     }
                 }
                 listView
@@ -69,7 +72,7 @@ struct IngredientListView: View {
                     }
                 }
                 .onDelete(perform: removeIngredients)
-                .deleteDisabled(isDeleteDisabled)
+                .deleteDisabled(editDisabled)
             }
         }
     }

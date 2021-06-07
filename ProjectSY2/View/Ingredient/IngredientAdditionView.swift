@@ -66,7 +66,7 @@ struct IngredientAdditionView: View {
             })
         }
         .sheet(isPresented: $isSelectingOperation, content: {
-            OperationListView(isDeleteDisabled: true) { operation in
+            OperationListView(showTitle: true) { operation in
                 isSelectingOperation = false
                 self.addOperation(operation)
             }

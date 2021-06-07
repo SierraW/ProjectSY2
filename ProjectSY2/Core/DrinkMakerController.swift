@@ -33,6 +33,13 @@ class DrinkMakerController {
         data.mode = .Practice
     }
     
+    func startOver() {
+        data.productContainer = nil
+        data.identifierGenerator = 0
+        data.steps = []
+        data.histories = []
+    }
+    
     func randomMode(serieses: [Series]) -> Bool {
         if serieses.count > 0 {
             var attemps = serieses.count * 2
@@ -101,9 +108,6 @@ class DrinkMakerController {
             for step in data.steps {
                 data.question?.addToSteps(step)
             }
-            for history in data.histories {
-                data.question?.addToHistories(history)
-            }
             data.question = Array(questions)[Int(exam.answered)]
             exam.answered = exam.answered + 1
             return true
@@ -112,44 +116,36 @@ class DrinkMakerController {
     }
     
     func checkError(for question: Question) -> Bool {
-        if let version = question.version, let pc = question.productContainer, let steps = question.steps as? Set<Step>, let histories = question.histories as? Set<History> {
-            if let aPC = version.productContainer, let aSteps = version.steps as? Set<Step>, let aHistories = version.histories as? Set<History> {
-                if pc != aPC {
-                    return false
+        if let version = question.version, let productContainer = question.productContainer , let steps = question.steps as? Set<Step> {
+            if let ansPC = version.productContainer, let ansSteps = version.steps as? Set<Step>{
+                if productContainer == ansPC && DrinkMakerComparator.compare(steps, ansSteps) {
+                    return true
                 }
-                if steps.count != aSteps.count {
-                    return false
-                }
-                if histories.count != aHistories.count {
-                    return false
-                }
-                
-                let stepsArr = Array(steps)
-                let aStepsArr = Array(aSteps)
-                for index in stepsArr.indices {
-                    let step = stepsArr[index]
-                    let aStep = aStepsArr[index]
-                    if step.name != aStep.name || step.index != aStep.index {
-                        return false
-                    }
-                }
-                
-                // more checking
-                
             }
         }
-        
         return false
+    }
+    
+    func checkAll(for exam: Exam) -> Int {
+        var count = 0
+        if let questionSet = exam.questions as? Set<Question> {
+            for question in questionSet {
+                if checkError(for: question) {
+                    count += 1
+                }
+            }
+        }
+        return count
     }
     
     func submitVersion() {
         if let version = data.version {
             version.productContainer = data.productContainer
+            if let steps = version.steps {
+                version.removeFromSteps(steps)
+            }
             for step in data.steps {
                 version.addToSteps(step)
-            }
-            for history in data.histories {
-                version.addToHistories(history)
             }
         }
     }

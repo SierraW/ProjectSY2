@@ -14,15 +14,18 @@ class ProductContainerAdditionData: ObservableObject {
     @Published var operations: [Operation]
     @Published var ingredients: [Ingredient]
     @Published var emptyTitleWarning = false
-    @Published var modifyWarning = false
     @Published var isShowingPCAddtionView = false
     
     init(_ productContainer: ProductContainer?) {
-        self.name = ""
+        self.name = "New Product Container"
+        self.productContainer = productContainer
         self.operations = []
         self.ingredients = []
         
         if let pc = productContainer {
+            if let name = pc.name {
+                self.name = name
+            }
             if let operations = pc.operations {
                 self.operations = Array(operations as! Set<Operation>)
             }
@@ -37,10 +40,12 @@ class ProductContainerAdditionData: ObservableObject {
         operations = []
         ingredients = []
         emptyTitleWarning = false
-        modifyWarning = false
         isShowingPCAddtionView = true
+        self.productContainer = productContainer
         if let pc = productContainer {
-            self.productContainer = pc
+            if let name = pc.name {
+                self.name = name
+            }
             if let opes = pc.operations {
                 operations = Array(opes as! Set<Operation>)
             }
@@ -70,6 +75,7 @@ class ProductContainerAdditionData: ObservableObject {
 struct ProductContainerAdditionView: View {
     @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var data: ProductContainerAdditionData
+    var editDisabled = false
     @State var isShowingIngredientSelectionView = false
     @State var isShowingOperationSelectionView = false
     
@@ -77,25 +83,26 @@ struct ProductContainerAdditionView: View {
         VStack {
             VStack {
                 HStack {
-                    title
+                    Text("Product Container")
                     Spacer()
                 }
-                TextField("Edit name...", text: $data.name)
-                    .font(.title2)
+                HStack {
+                    Image(systemName: "pencil")
+                    TextField("Name of the Product Container", text: $data.name, onEditingChanged: {_ in }) {
+                        submit()
+                    }
+                        .font(.title2)
                     .border(data.emptyTitleWarning ? Color.red : Color.clear, width: 2)
+                }
                 assignedActionSection
             }
             .padding()
-            Button(action: {
-                verifyFields()
-            }, label: {
-                SubmitButtonView(title: "Submit")
-            })
         }
         .sheet(isPresented: $isShowingIngredientSelectionView, content: {
             IngredientListView { ig in
                 data.add(ig)
                 isShowingIngredientSelectionView = false
+                save()
             }
             .environment(\.managedObjectContext, viewContext)
             .environmentObject(IngredientData())
@@ -104,15 +111,13 @@ struct ProductContainerAdditionView: View {
             OperationListView { op in
                 data.add(op)
                 isShowingOperationSelectionView = false
+                save()
             }
             .environment(\.managedObjectContext, viewContext)
             .environmentObject(OperationData())
         })
-        .alert(isPresented: $data.modifyWarning, content: {
-            Alert(title: Text("Changes about to apply"), message: Text("Name of the product container: \(data.name), and the operations listed above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
-                data.modifyWarning = false
-                self.submit()
-            }))
+        .alert(isPresented: $data.emptyTitleWarning, content: {
+            Alert(title: Text("Product Container name cannot be empty"))
         })
     }
     
@@ -139,6 +144,9 @@ struct ProductContainerAdditionView: View {
                 ForEach (data.operations) { ope in
                     Text(ope.name ?? "Error item")
                 }
+                .onDelete(perform: { indexSet in
+                    removeOperations(atOffsets: indexSet)
+                })
             }
         }
     }
@@ -155,6 +163,9 @@ struct ProductContainerAdditionView: View {
                 ForEach (data.ingredients) { ing in
                     Text(ing.name ?? "Error item")
                 }
+                .onDelete(perform: { indexSet in
+                    removeIngredients(atOffsets: indexSet)
+                })
             }
         }
     }
@@ -197,32 +208,53 @@ struct ProductContainerAdditionView: View {
         }
     }
     
-    private func verifyFields() {
-        if data.name == "" && data.productContainer == nil {
-            data.emptyTitleWarning = true
-            return
+    private func removeIngredients(atOffsets indexSet: IndexSet) {
+        if let productContainer = data.productContainer {
+            for index in indexSet {
+                let ingredient = data.ingredients[index]
+                productContainer.removeFromIngredients(ingredient)
+            }
         }
-        data.modifyWarning = true
+        data.ingredients.remove(atOffsets: indexSet)
+        save()
+    }
+    
+    private func removeOperations(atOffsets indexSet: IndexSet) {
+        if let productContainer = data.productContainer {
+            for index in indexSet {
+                let operation = data.operations[index]
+                productContainer.removeFromOperations(operation)
+            }
+        }
+        data.operations.remove(atOffsets: indexSet)
+        save()
     }
     
     private func submit() {
         withAnimation {
+            if data.name == "" {
+                data.emptyTitleWarning = true
+                return
+            }
             if data.productContainer == nil {
                 let newItem = ProductContainer(context: viewContext)
                 newItem.name = data.name
-                for op in data.operations {
-                    newItem.addToOperations(op)
-                }
+                data.set(newItem)
+            } else if data.name != "" {
+                data.productContainer!.name = data.name
             }
-            do {
-                try viewContext.save()
-                data.isShowingPCAddtionView = false
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            save()
+        }
+    }
+    
+    private func save() {
+        do {
+            try viewContext.save()
+        } catch {
+            // Replace this implementation with code to handle the error appropriately.
+            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
 }

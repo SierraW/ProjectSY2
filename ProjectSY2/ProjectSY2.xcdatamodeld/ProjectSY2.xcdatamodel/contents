@@ -14,11 +14,11 @@
         <relationship name="questions" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Question" inverseName="exam" inverseEntity="Question"/>
     </entity>
     <entity name="History" representedClassName="History" syncable="YES" codeGenerationType="class">
+        <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="container" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Container" inverseName="history" inverseEntity="Container"/>
-        <relationship name="question" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Question" inverseName="histories" inverseEntity="Question"/>
+        <relationship name="rootStep" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Step" inverseName="childHistory" inverseEntity="Step"/>
         <relationship name="steps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Step" inverseName="history" inverseEntity="Step"/>
-        <relationship name="version" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Version" inverseName="histories" inverseEntity="Version"/>
     </entity>
     <entity name="Ingredient" representedClassName="Ingredient" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
@@ -62,7 +62,6 @@
         <attribute name="isCorrect" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="exam" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Exam" inverseName="questions" inverseEntity="Exam"/>
-        <relationship name="histories" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="History" inverseName="question" inverseEntity="History"/>
         <relationship name="productContainer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="questions" inverseEntity="ProductContainer"/>
         <relationship name="steps" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Step" inverseName="question" inverseEntity="Step"/>
         <relationship name="version" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Version" inverseName="question" inverseEntity="Version"/>
@@ -72,8 +71,9 @@
         <relationship name="products" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Product" inverseName="series" inverseEntity="Product"/>
     </entity>
     <entity name="Step" representedClassName="Step" syncable="YES" codeGenerationType="class">
-        <attribute name="index" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="identifier" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="childHistory" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="History" inverseName="rootStep" inverseEntity="History"/>
         <relationship name="history" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="History" inverseName="steps" inverseEntity="History"/>
         <relationship name="question" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Question" inverseName="steps" inverseEntity="Question"/>
         <relationship name="version" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Version" inverseName="steps" inverseEntity="Version"/>
@@ -81,7 +81,6 @@
     <entity name="Version" representedClassName="Version" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <relationship name="histories" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="History" inverseName="version" inverseEntity="History"/>
         <relationship name="product" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Product" inverseName="versions" inverseEntity="Product"/>
         <relationship name="productContainer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="version" inverseEntity="ProductContainer"/>
         <relationship name="question" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Question" inverseName="version" inverseEntity="Question"/>
@@ -98,9 +97,9 @@
         <element name="Operation" positionX="-18" positionY="90" width="128" height="89"/>
         <element name="Product" positionX="-45" positionY="63" width="128" height="74"/>
         <element name="ProductContainer" positionX="-63" positionY="-9" width="128" height="104"/>
-        <element name="Question" positionX="-9" positionY="99" width="128" height="134"/>
+        <element name="Question" positionX="-9" positionY="99" width="128" height="119"/>
         <element name="Series" positionX="-36" positionY="72" width="128" height="59"/>
-        <element name="Step" positionX="-54" positionY="9" width="128" height="104"/>
-        <element name="Version" positionX="-27" positionY="81" width="128" height="134"/>
+        <element name="Step" positionX="-54" positionY="9" width="128" height="119"/>
+        <element name="Version" positionX="-27" positionY="81" width="128" height="119"/>
     </elements>
 </model>

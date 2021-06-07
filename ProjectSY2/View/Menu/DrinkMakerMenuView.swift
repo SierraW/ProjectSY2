@@ -27,7 +27,6 @@ struct DrinkMakerMenuView: View {
                 Spacer()
             }
             .padding()
-            Spacer()
             Button(action: {
                 controller.creatorMode()
                 landingViewData.isShowingMainMenu = false

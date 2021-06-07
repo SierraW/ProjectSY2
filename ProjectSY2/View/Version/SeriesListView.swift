@@ -17,7 +17,7 @@ struct SeriesListView: View {
     @State var isShowingProductAndVersionView = false
     @State var editingSeries: Series?
     @State var seriesName: String = ""
-    var isDeleteDisabled = false
+    var isEditable = true
     var selected: ((Version) -> Void)?
     @State var isDeleteFailed = false
     
@@ -37,14 +37,14 @@ struct SeriesListView: View {
             .padding()
             if isShowingProductAndVersionView {
                 Divider()
-                Group {
+                Section {
                     if selected == nil {
                         ProductAndVersionSelectionView(showTitle: true)
                             .environment(\.managedObjectContext, viewContext)
                             .environmentObject(pvData)
                     } else {
                         ProductAndVersionSelectionView(showTitle: true) { _, version in
-                            
+                            isPresented.toggle()
                             selected!(version)
                         }
                         .environment(\.managedObjectContext, viewContext)
@@ -56,8 +56,8 @@ struct SeriesListView: View {
                 }
                 .transition(.slide)
             }
+            Spacer()
         }
-        .navigationBarHidden(true)
         .alert(isPresented: $isDeleteFailed, content: {
             Alert(title: Text("Delete failed."))
         })
@@ -73,7 +73,7 @@ struct SeriesListView: View {
         } else {
             List {
                 ForEach(serieses) { ser in
-                    if selected == nil {
+                    if isEditable {
                         if editingSeries == ser {
                             HStack {
                                 TextField("Name of Series", text: $seriesName)
@@ -93,7 +93,11 @@ struct SeriesListView: View {
                             HStack {
                                 Text(ser.name ?? "Error item")
                                     .gesture(TapGesture().onEnded({ _ in
-                                        set(ser)
+                                        if let series = pvData.series, series == ser {
+                                            set(nil)
+                                        } else {
+                                            set(ser)
+                                        }
                                     }))
                                 Spacer()
                                 Image(systemName: "pencil")
@@ -118,7 +122,7 @@ struct SeriesListView: View {
                     }
                 }
                 .onDelete(perform: deleteContainers(_:))
-                .deleteDisabled(isDeleteDisabled)
+                .deleteDisabled(!isEditable)
             }
         }
     }

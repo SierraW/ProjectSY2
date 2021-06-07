@@ -27,19 +27,22 @@ struct DrinkMakerStepsView: View {
     var isShowingDetail = true
     
     var body: some View {
-        VStack {
-            HStack {
-                Text("from \(data.name)")
-                Spacer()
-            }
-            if isShowingDetail {
-                Section {
-                    ForEach(data.steps) { step in
-                        Text(step.name ?? "Error itme")
+        ZStack {
+            Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
+            VStack {
+                HStack {
+                    Text("from \(data.name)")
+                    Spacer()
+                }
+                if isShowingDetail {
+                    Section {
+                        ForEach(data.steps) { step in
+                            Text(step.name ?? "Error itme")
+                        }
                     }
                 }
             }
+            .padding()
         }
-        .padding()
     }
 }

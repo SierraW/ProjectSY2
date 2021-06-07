@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3B05D6E1266DCB86009D0EAE /* DrinkMakerComparator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6E0266DCB86009D0EAE /* DrinkMakerComparator.swift */; };
 		3B859B0126669DD40028A17F /* DrinkMakerMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B859B0026669DD40028A17F /* DrinkMakerMenuView.swift */; };
 		3B859B032666A0DD0028A17F /* DataStoreMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B859B022666A0DD0028A17F /* DataStoreMenuView.swift */; };
 		3B859B052666A1430028A17F /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B859B042666A1430028A17F /* LandingView.swift */; };
@@ -58,6 +59,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3B05D6E0266DCB86009D0EAE /* DrinkMakerComparator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerComparator.swift; sourceTree = "<group>"; };
 		3B859B0026669DD40028A17F /* DrinkMakerMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerMenuView.swift; sourceTree = "<group>"; };
 		3B859B022666A0DD0028A17F /* DataStoreMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStoreMenuView.swift; sourceTree = "<group>"; };
 		3B859B042666A1430028A17F /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 			isa = PBXGroup;
 			children = (
 				3BBF0009265F4C4200EDE488 /* DrinkMakerController.swift */,
+				3B05D6E0266DCB86009D0EAE /* DrinkMakerComparator.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -423,6 +426,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3BAEEFD0265EA70F0006E415 /* SubmitButtonView.swift in Sources */,
+				3B05D6E1266DCB86009D0EAE /* DrinkMakerComparator.swift in Sources */,
 				3BAEEFC9265EA00A0006E415 /* IngredientListView.swift in Sources */,
 				3BBF0008265F41C300EDE488 /* DrinkMakerView.swift in Sources */,
 				3BAEEFDC265EE51F0006E415 /* OperationListView.swift in Sources */,

@@ -14,7 +14,6 @@ class DrinkMakerData: ObservableObject {
     @Published var version: Version? = nil
     @Published var productContainer: ProductContainer? = nil
     @Published var steps: [Step] = []
-    @Published var nestedHistories: [History] = []
     @Published var histories: [History] = []
     @Published var mode: Mode = .Creator
     @Published var isLoading = false
@@ -26,6 +25,7 @@ class DrinkMakerData: ObservableObject {
     @Published var isShowingVersionSelectionView = false
     var questions: [Question] = []
     var drinkMakerContainerData: DrinkMakerContainerData? = nil
+    var identifierGenerator = 0
     var productName: String {
         if let version = version, let product = version.product {
             return "\(product.name ?? "Unnamed Product") - \(version.name ?? "Normal")"
@@ -46,7 +46,6 @@ class DrinkMakerData: ObservableObject {
         version = nil
         productContainer = nil
         steps = []
-        nestedHistories = []
         histories = []
         mode = .Creator
         isLoading = false
@@ -56,6 +55,12 @@ class DrinkMakerData: ObservableObject {
         isShowingContainerSelectionView = false
         isShowingContainerEditingView = false
         drinkMakerContainerData = nil
+        identifierGenerator = 0
+    }
+    
+    func generateId() -> Int32 {
+        identifierGenerator += 1
+        return Int32(identifierGenerator)
     }
     
     func set(_ history: History) {
@@ -98,6 +103,7 @@ struct DrinkMakerView: View {
     var controller: DrinkMakerController {
         landingViewData.controller
     }
+    @State var isReadyGoBack = false
     @State var isReadyForSubmit = false
     @State var isShowingStepsDetail = false
     @State var isPresentAlert = false
@@ -132,15 +138,35 @@ struct DrinkMakerView: View {
         } else if drinkMakerData.isLoading {
             DrinkMakerLoadingView(controller: DrinkMakerController(drinkMakerData))
                 .environmentObject(drinkMakerData)
+                .environmentObject(landingViewData)
         } else {
             VStack {
                 VStack {
                     HStack {
-                        Text("DrinkMaker™")
-                            .font(.title)
-                            .gesture(TapGesture().onEnded({ _ in
-                                landingViewData.isShowingMainMenu = true
-                            }))
+                        Section {
+                            if isReadyGoBack {
+                                Button(action: {
+                                    withAnimation {
+                                        landingViewData.isShowingMainMenu.toggle()
+                                    }
+                                }, label: {
+                                    Text("Go Back")
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.red)
+                                })
+                                .transition(.slide)
+                            } else {
+                                Text("DrinkMaker™")
+                                    .font(.title)
+                                    .transition(.opacity)
+                                    .gesture(TapGesture().onEnded({ _ in
+                                        withAnimation {
+                                            readyForGoingBack()
+                                        }
+                                    }))
+                            }
+                        }
+                        .frame(width: 300, height: 30, alignment: .leading)
                         Spacer()
                         Text(drinkMakerData.mode.rawValue)
                             .font(.title2)
@@ -159,15 +185,22 @@ struct DrinkMakerView: View {
                 }
                 .padding()
                 productContainer
+                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: .infinity, alignment: .topLeading)
                 HStack {
                     Text("Preparation Zone")
                         .font(.title3)
                         .bold()
+                        .gesture(TapGesture().onEnded({ _ in
+                            minimizedExtendedIOView()
+                        }))
                     Spacer()
                 }
                 .padding()
-                containList
-                Spacer()
+                if !isShowingIngredientSelectionView && !isShowingOperationSelectionView {
+                    containList
+                        .transition(.move(edge: .bottom))
+                        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 200, alignment: .topLeading)
+                }
                 Button(action: {
                     submit()
                 }, label: {
@@ -206,21 +239,9 @@ struct DrinkMakerView: View {
                     .environment(\.managedObjectContext, viewContext)
                     .environmentObject(drinkMakerData.drinkMakerContainerData!)
             })
-            .sheet(isPresented: $isShowingIngredientSelectionView, content: {
-                IngredientAmountUnitSelectionView { ingredient, unit, amount in
-                    addToProductContainer(ingredient, unit: unit, amount: amount)
-                    isShowingIngredientSelectionView = false
-                }
-            })
-            .sheet(isPresented: $isShowingOperationSelectionView, content: {
-                OperationListView(isDeleteDisabled: true) { operation in
-                    addToProductContainer(operation)
-                }
-                .environment(\.managedObjectContext, viewContext)
-                .environmentObject(OperationData())
-            })
             .sheet(isPresented: $isPresentProductContainerContentView, content: {
                 DrinkMakerProductContainerContentView(from: drinkMakerData.question!.version!)
+                    .environmentObject(drinkMakerData)
             })
             .alert(isPresented: $isPresentAlert, content: {
                 Alert(title: Text(alertType.message()))
@@ -232,36 +253,67 @@ struct DrinkMakerView: View {
     var productContainer: some View {
         if let _ = drinkMakerData.productContainer {
             VStack {
-                List {
-                    ForEach(drinkMakerData.steps) { step in
-                        if let name = step.name {
-                            Text(name)
-                        } else {
-                            DrinkMakerStepsView(isShowingDetail: isShowingStepsDetail)
-                                .environmentObject(DrinkMakerStepsData(drinkMakerData.nestedHistories[Int(step.index)]))
+                DrinkMakerProductContainerContentView()
+                    .environmentObject(drinkMakerData)
+                HStack {
+                    Button(action: {
+                        controller.startOver()
+                    }, label: {
+                        Text("Start Over")
+                            .fontWeight(.bold)
+                            .foregroundColor(.red)
+                    })
+                }
+                HStack {
+                    Button(action: {
+                        withAnimation {
+                            if isShowingOperationSelectionView {
+                                isShowingOperationSelectionView = false
+                            }
+                            isShowingIngredientSelectionView.toggle()
+                        }
+                    }, label: {
+                        HStack {
+                            Text("Add Ingredient")
+                            Image(systemName: "chevron.right.circle")
+                                                    .imageScale(.large)
+                                                    .rotationEffect(.degrees(isShowingIngredientSelectionView ? 90 : 0))
+                                                    .padding()
+                        }
+                        
+                    })
+                    Spacer()
+                    Button(action: {
+                        withAnimation {
+                            if isShowingIngredientSelectionView {
+                                isShowingIngredientSelectionView = false
+                            }
+                            isShowingOperationSelectionView.toggle()
+                        }
+                    }, label: {
+                        HStack {
+                            Text("Operations")
+                            Image(systemName: "chevron.right.circle")
+                                                    .imageScale(.large)
+                                                    .rotationEffect(.degrees(isShowingOperationSelectionView ? 90 : 0))
+                                                    .padding()
+                        }
+                        
+                    })
+                }
+                if isShowingIngredientSelectionView {
+                    HStack {
+                        IngredientAmountUnitSelectionView(showTitle: false) { ingredient, unit, amount in
+                            addToProductContainer(ingredient, unit: unit, amount: amount)
                         }
                     }
                 }
-                .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 150, alignment: .topLeading)
-                HStack {
-                    Spacer()
-                    Toggle(isOn: $isShowingStepsDetail) {
-                        if isShowingStepsDetail {
-                            Text("Show Detail")
-                        } else {
-                            Text("Hide Detail")
-                        }
+                if isShowingOperationSelectionView {
+                    OperationListView(showTitle: false) { operation in
+                        addToProductContainer(operation)
                     }
-                    Spacer()
-                }
-                HStack {
-                    Button("Ingredients...") {
-                        isShowingIngredientSelectionView = true
-                    }
-                    Spacer()
-                    Button("Operations...") {
-                        isShowingOperationSelectionView = true
-                    }
+                    .environment(\.managedObjectContext, viewContext)
+                    .environmentObject(OperationData())
                 }
             }
             .padding()
@@ -273,7 +325,6 @@ struct DrinkMakerView: View {
                         .foregroundColor(.gray)
                 }
             }
-            .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 70, alignment: .topLeading)
             .gesture(TapGesture().onEnded({ _ in
                 drinkMakerData.isShowingPCSelectionView = true
             }))
@@ -323,6 +374,7 @@ struct DrinkMakerView: View {
             }
             .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 70, alignment: .topLeading)
             .gesture(TapGesture().onEnded({ _ in
+                minimizedExtendedIOView()
                 drinkMakerData.isShowingContainerSelectionView = true
             }))
         } else {
@@ -341,8 +393,9 @@ struct DrinkMakerView: View {
                                     }
                                 }
                             }
-                            .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 200, alignment: .topLeading)
+                            .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 100, alignment: .topLeading)
                             .gesture(TapGesture().onEnded({ _ in
+                                minimizedExtendedIOView()
                                 drinkMakerData.set(history)
                             }))
                             HStack {
@@ -360,8 +413,20 @@ struct DrinkMakerView: View {
         }
     }
     
+    private func minimizedExtendedIOView() {
+        withAnimation {
+            if isShowingOperationSelectionView {
+                isShowingOperationSelectionView = false
+            }
+            if isShowingIngredientSelectionView {
+                isShowingIngredientSelectionView = false
+            }
+        }
+    }
+    
     func addContainer(_ container: Container) {
         let history = History(context: viewContext)
+        history.identifier = drinkMakerData.generateId()
         history.container = container
         drinkMakerData.histories.append(history)
         drinkMakerData.isShowingContainerSelectionView = false
@@ -369,12 +434,14 @@ struct DrinkMakerView: View {
     
     func addToProductContainer(_ ingredient: Ingredient, unit: IngredientUnit, amount: IngredientUnitAmount) {
         let step = Step(context: viewContext)
+        step.identifier = drinkMakerData.generateId()
         step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(ingredient.name ?? "Error item")"
         drinkMakerData.steps.append(step)
     }
     
     func addToProductContainer(_ operation: Operation) {
         let step = Step(context: viewContext)
+        step.identifier = drinkMakerData.generateId()
         step.name = "\(operation.name ?? "Error item")"
         drinkMakerData.steps.append(step)
     }
@@ -382,8 +449,8 @@ struct DrinkMakerView: View {
     func pour(_ history: History) {
         if let _ = drinkMakerData.productContainer {
             let step = Step(context: viewContext)
-            step.index = Int32(drinkMakerData.nestedHistories.count)
-            drinkMakerData.nestedHistories.append(history)
+            step.identifier = history.identifier
+            step.childHistory = history
             drinkMakerData.steps.append(step)
             addContainer(history.container!)
             drinkMakerData.remove(history)
@@ -410,6 +477,18 @@ struct DrinkMakerView: View {
             return false
         }
         return true
+    }
+    
+    func readyForGoingBack() {
+        if let timer = timer, timer.isValid {
+            timer.fire()
+        }
+        isReadyGoBack = true
+        timer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false, block: { _ in
+            withAnimation {
+                isReadyGoBack = false
+            }
+        })
     }
     
     func submit() {

@@ -8,12 +8,13 @@
 import SwiftUI
 
 struct IngredientAmountUnitSelectionView: View {
+    var showTitle = false
     var selected: (Ingredient, IngredientUnit, IngredientUnitAmount) -> Void
     @State var selectedIngredient: Ingredient?
     
     var body: some View {
         if selectedIngredient == nil {
-            IngredientListView { ing in
+            IngredientListView(showTitle: showTitle) { ing in
                 set(ing)
             }
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)

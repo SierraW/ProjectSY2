@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DrinkMakerLoadingView: View {
     @EnvironmentObject var drinkMakerData: DrinkMakerData
+    @EnvironmentObject var landingViewData: LandingViewData
     let controller: DrinkMakerController
     
     var body: some View {
@@ -20,6 +21,12 @@ struct DrinkMakerLoadingView: View {
                 }
                 .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
                 .environmentObject(ProductAndVersionData(nil))
+                Button(action: {
+                    landingViewData.isShowingMainMenu.toggle()
+                }, label: {
+                    Text("Go Back")
+                        .foregroundColor(.red)
+                })
             }
         } else {
             HStack {

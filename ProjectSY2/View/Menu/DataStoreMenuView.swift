@@ -15,43 +15,45 @@ struct DataStoreMenuView: View {
                     .font(.title2)
                 Spacer()
             }
-            NavigationLink(
-                destination: ProductContainerListView()
-                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                    .environmentObject(ProductContainerAdditionData(nil)),
-                label: {
-                    Text("Product Container")
-                })
-            NavigationLink(
-                destination: ContainerListView()
-                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                    .environmentObject(ContainerData()),
-                label: {
-                    Text("Container")
-                })
-            NavigationLink(
-                destination: IngredientListView()
-                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                    .environmentObject(IngredientData()),
-                label: {
-                    Text("Ingredient")
-                })
-            NavigationLink(
-                destination: OperationListView()
-                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                    .environmentObject(OperationData()),
-                label: {
-                    Text("Operaion")
-                })
-            NavigationLink(
-                destination: SeriesListView(isPresented: .constant(true))
-                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                    .environmentObject(ProductAndVersionData(nil)),
-                label: {
-                    Text("Version")
-                })
+            .padding()
+            VStack(spacing: 15) {
+                NavigationLink(
+                    destination: ProductContainerListView()
+                        .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+                        .environmentObject(ProductContainerAdditionData(nil)),
+                    label: {
+                        SubmitButtonView(title: "Product Container", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
+                    })
+                NavigationLink(
+                    destination: ContainerListView()
+                        .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+                        .environmentObject(ContainerData()),
+                    label: {
+                        SubmitButtonView(title: "Container", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
+                    })
+                NavigationLink(
+                    destination: IngredientListView()
+                        .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+                        .environmentObject(IngredientData()),
+                    label: {
+                        SubmitButtonView(title: "Ingredient", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
+                    })
+                NavigationLink(
+                    destination: OperationListView()
+                        .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+                        .environmentObject(OperationData()),
+                    label: {
+                        SubmitButtonView(title: "Operaion", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
+                    })
+                NavigationLink(
+                    destination: SeriesListView(isPresented: .constant(true))
+                        .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+                        .environmentObject(ProductAndVersionData(nil)),
+                    label: {
+                        SubmitButtonView(title: "Version", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
+                    })
+            }
         }
-        .padding()
     }
 }
 

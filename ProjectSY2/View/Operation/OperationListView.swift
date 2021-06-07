@@ -14,19 +14,22 @@ struct OperationListView: View {
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Operation.name, ascending: true)],
                   animation: .default)
     var operations: FetchedResults<Operation>
-    var isDeleteDisabled = false
+    var showTitle = true
+    var editDisabled = false
     var selected: ((Operation) -> Void)?
     @State var isDeleteFailed = false
     
     var body: some View {
         ZStack {
             VStack {
-                HStack {
-                    Text("Operation")
-                        .font(.title)
-                    Spacer()
-                    Button("Add") {
-                        operationData.set(nil)
+                if showTitle {
+                    HStack {
+                        Text("Operation")
+                            .font(.title)
+                        Spacer()
+                        Button("Add") {
+                            operationData.set(nil)
+                        }
                     }
                 }
                 operationList
@@ -65,7 +68,7 @@ struct OperationListView: View {
                     }
                 }
                 .onDelete(perform: deleteContainers(_:))
-                .deleteDisabled(isDeleteDisabled)
+                .deleteDisabled(editDisabled)
             }
         }
     }

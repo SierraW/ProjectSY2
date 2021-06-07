@@ -40,33 +40,19 @@ class ContainerData: ObservableObject {
         }
     }
     
-    func removeFromIngredients(_ indexSet: IndexSet) {
+    func add(_ operation: Operation) {
         if let container = container {
-            for index in indexSet {
-                let ing = ingredients[index]
-                container.removeFromIngredients(ing)
-            }
+            container.addToOperations(operation)
+            operations.append(operation)
         }
-        ingredients.remove(atOffsets: indexSet)
-    }
-    
-    func removeFromOperations(_ indexSet: IndexSet) {
-        if let container = container {
-            for index in indexSet {
-                let ope = operations[index]
-                container.removeFromOperations(ope)
-            }
-        }
-        operations.remove(atOffsets: indexSet)
     }
 }
 
 struct ContainerAdditionView: View {
     @Environment(\.managedObjectContext) var viewContext
     
-    @EnvironmentObject var containerData: ContainerData
+    @EnvironmentObject var data: ContainerData
     @State var emptyTitleWarning = false
-    @State var modifyWarning = false
     @State var isShowingIngredientSelectionView = false
     @State var isShowingOperationSelectionView = false
     
@@ -74,12 +60,17 @@ struct ContainerAdditionView: View {
         VStack {
             VStack {
                 HStack {
-                    title
+                    Text("Container")
                     Spacer()
                 }
-                TextField("Edit name...", text: $containerData.name)
-                    .font(.title2)
+                HStack {
+                    Image(systemName: "pencil")
+                    TextField("Name of the Container", text: $data.name, onEditingChanged: {_ in }) {
+                        submit()
+                    }
+                        .font(.title2)
                     .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
+                }
                 HStack {
                     Text("Assigned Ingredients")
                         .font(.title3)
@@ -104,58 +95,55 @@ struct ContainerAdditionView: View {
                     .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 200, idealHeight: 500, maxHeight: 500, alignment: .topLeading)
             }
             .padding()
-            Button(action: {
-                verifyFields()
-            }, label: {
-                SubmitButtonView(title: "Submit")
-            })
         }
         .sheet(isPresented: $isShowingIngredientSelectionView, content: {
             IngredientListView() { ig in
-                containerData.add(ig)
+                data.add(ig)
                 isShowingIngredientSelectionView = false
+                save()
             }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(IngredientData())
         })
         .sheet(isPresented: $isShowingOperationSelectionView, content: {
-            OperationListView()
+            OperationListView() { op in
+                data.add(op)
+                isShowingOperationSelectionView = false
+                save()
+            }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(OperationData())
         })
-        .alert(isPresented: $modifyWarning, content: {
-            Alert(title: Text("Changes about to apply"), message: Text("Name of the container: \(containerData.name), and the operations listed above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
-                self.modifyWarning = false
-                self.submit()
-            }))
+        .alert(isPresented: $emptyTitleWarning, content: {
+            Alert(title: Text("Name of the container cannot be empty"))
         })
     }
     
     @ViewBuilder
     var title: some View {
-        if containerData.container == nil {
+        if data.container == nil {
             Text("New Container")
                 .font(.title)
         } else {
-            Text(containerData.container!.name ?? "Error item")
+            Text(data.container!.name ?? "Error item")
                 .font(.title)
         }
     }
     
     @ViewBuilder
     var operationList: some View {
-        if containerData.operations.isEmpty {
+        if data.operations.isEmpty {
             HStack {
                 Text("No assigned operation")
                 Spacer()
             }
         } else {
             List {
-                ForEach (containerData.operations) { ope in
+                ForEach (data.operations) { ope in
                     Text(ope.name ?? "Error item")
                 }
                 .onDelete(perform: { indexSet in
-                    containerData.removeFromOperations(indexSet)
+                    removeOperations(atOffsets: indexSet)
                 })
             }
         }
@@ -163,32 +151,32 @@ struct ContainerAdditionView: View {
     
     @ViewBuilder
     var ingredientList: some View {
-        if containerData.ingredients.isEmpty {
+        if data.ingredients.isEmpty {
             HStack {
                 Text("No assigned ingredient")
                 Spacer()
             }
-        } else if containerData.selectedIngredient == nil {
+        } else if data.selectedIngredient == nil {
             List {
-                ForEach (containerData.ingredients) { ing in
+                ForEach (data.ingredients) { ing in
                     Button(ing.name ?? "Error item") {
-                        containerData.selectedIngredient = ing
+                        data.selectedIngredient = ing
                     }
                 }
                 .onDelete(perform: { indexSet in
-                    containerData.removeFromIngredients(indexSet)
+                    removeIngredients(atOffsets: indexSet)
                 })
             }
         } else {
             VStack {
                 HStack {
                     Button(action: {
-                        containerData.selectedIngredient = nil
+                        data.selectedIngredient = nil
                     }, label: {
                         HStack {
                             Image(systemName: "chevron.backward")
                                 .foregroundColor(.blue)
-                            Text(containerData.selectedIngredient?.name ?? "Error item")
+                            Text(data.selectedIngredient?.name ?? "Error item")
                         }
                     })
                     Spacer()
@@ -196,40 +184,61 @@ struct ContainerAdditionView: View {
                 .padding(.top, 5)
                 AmountAndUnitSelectionView()
                     .environment(\.managedObjectContext, viewContext)
-                    .environmentObject(AmountAndUnitSelectionData(containerData.selectedIngredient!))
+                    .environmentObject(AmountAndUnitSelectionData(data.selectedIngredient!))
             }
         }
     }
     
-    private func verifyFields() {
-        if containerData.name == "" && containerData.container == nil {
-            emptyTitleWarning = true
-            return
+    private func removeIngredients(atOffsets indexSet: IndexSet) {
+        if let container = data.container {
+            for index in indexSet {
+                let ingredient = data.ingredients[index]
+                container.removeFromIngredients(ingredient)
+            }
         }
-        modifyWarning = true
+        data.ingredients.remove(atOffsets: indexSet)
+        save()
+    }
+    
+    private func removeOperations(atOffsets indexSet: IndexSet) {
+        if let container = data.container {
+            for index in indexSet {
+                let operation = data.operations[index]
+                container.removeFromOperations(operation)
+            }
+        }
+        data.operations.remove(atOffsets: indexSet)
+        save()
     }
     
     private func submit() {
         withAnimation {
-            if containerData.container == nil {
+            if data.name == "" {
+                emptyTitleWarning = true
+                return
+            }
+            if data.container == nil {
                 let newItem = Container(context: viewContext)
-                newItem.name = containerData.name
+                newItem.name = data.name
                 newItem.operations = Set<Operation>() as NSSet
-                for op in containerData.operations {
+                for op in data.operations {
                     newItem.addToOperations(op)
                 }
-            } else if containerData.name != "" {
-                containerData.container!.name = containerData.name
+            } else if data.name != "" {
+                data.container!.name = data.name
             }
-            do {
-                try viewContext.save()
-                containerData.isShowingContainerDetailView = false
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            save()
+        }
+    }
+    
+    private func save() {
+        do {
+            try viewContext.save()
+        } catch {
+            // Replace this implementation with code to handle the error appropriately.
+            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
 }

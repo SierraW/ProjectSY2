@@ -20,7 +20,7 @@ struct DrinkMakerSubmissionView: View {
             } else if drinkMakerData.mode == .Exam {
                 examResult
             } else {
-                
+                compareView
             }
         }
         .alert(isPresented: $warningSaveFailed, content: {
@@ -29,35 +29,63 @@ struct DrinkMakerSubmissionView: View {
     }
     
     @ViewBuilder
-    var versionCreator: some View {
+    var compareView: some View {
         VStack {
-            HStack {
-                Text(drinkMakerData.productName)
-                    .font(.title)
+            Section {
+                if let question = drinkMakerData.question, landingViewData.controller.checkError(for: question) {
+                    Text("Correct")
+                        .foregroundColor(.green)
+                } else {
+                    Text("Wrong")
+                        .foregroundColor(.red)
+                }
             }
-            List {
-                ForEach(drinkMakerData.steps) { step in
-                    if let name = step.name {
-                        Text(name)
-                    } else {
-                        DrinkMakerStepsView(isShowingDetail: true)
-                            .environmentObject(DrinkMakerStepsData(drinkMakerData.histories[Int(step.index)]))
+            HStack {
+                VStack {
+                    Text("Your Answer")
+                    DrinkMakerProductContainerContentView()
+                        .environmentObject(drinkMakerData)
+                }
+                if let question = drinkMakerData.question, let version = question.version {
+                    VStack {
+                        Text("Correct Answer")
+                        DrinkMakerProductContainerContentView(from: version)
                     }
                 }
             }
             VStack {
                 Button(action: {
-                    landingViewData.controller.creatorMode()
+                    landingViewData.controller.pracitcePreparingMode()
                 }, label: {
                     SubmitButtonView(title: "Start again")
+                })
+                Button(action: {
+                    landingViewData.isShowingMainMenu = true
+                }, label: {
+                    SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
                 })
             }
         }
     }
     
     @ViewBuilder
-    var versionSelector: some View {
-        Text("")
+    var versionCreator: some View {
+        VStack {
+            DrinkMakerProductContainerContentView()
+                .environmentObject(drinkMakerData)
+            VStack {
+                Button(action: {
+                    landingViewData.controller.creatorMode()
+                }, label: {
+                    SubmitButtonView(title: "Start again")
+                })
+                Button(action: {
+                    landingViewData.isShowingMainMenu = true
+                }, label: {
+                    SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
+                })
+            }
+        }
     }
     
     @ViewBuilder
@@ -67,9 +95,22 @@ struct DrinkMakerSubmissionView: View {
                 Text("Exam Result")
                     .font(.title)
             }
-            HStack {
-                
+            if let exam = drinkMakerData.exam {
+                HStack {
+                    Text("Correct")
+                    Text("\(landingViewData.controller.checkAll(for: exam))")
+                }
+                HStack {
+                    Text("Total")
+                    Text("\(exam.questions?.count ?? 0)")
+                }
             }
+            
+            Button(action: {
+                landingViewData.isShowingMainMenu = true
+            }, label: {
+                SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
+            })
         }
     }
     
