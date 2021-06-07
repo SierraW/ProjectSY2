@@ -19,9 +19,11 @@ class ContainerData: ObservableObject {
     func set(_ container: Container?) {
         self.operations = []
         self.ingredients = []
-        self.name = ""
         
         if let container = container {
+            if let name = container.name {
+                self.name = name
+            }
             if let operations = container.operations {
                 self.operations = Array(operations as! Set<Operation>)
             }

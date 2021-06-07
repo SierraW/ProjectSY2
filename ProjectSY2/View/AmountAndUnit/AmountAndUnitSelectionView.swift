@@ -167,7 +167,9 @@ struct AmountAndUnitSelectionView: View {
                 ForEach(amountAndUnitSelectionData.units) { unit in
                     if unit == amountAndUnitSelectionData.isEditingUnit {
                         HStack {
-                            TextField("Unit Name", text: $amountAndUnitSelectionData.unitName)
+                            TextField("Unit Name", text: $amountAndUnitSelectionData.unitName) { _ in} onCommit: {
+                                saveUnit()
+                            }
                             Spacer()
                             Image(systemName: "pencil")
                                 .foregroundColor(.green)
@@ -240,7 +242,9 @@ struct AmountAndUnitSelectionView: View {
                 ForEach(amountAndUnitSelectionData.amounts) { amount in
                     if amount == amountAndUnitSelectionData.isEditingAmount {
                         HStack {
-                            TextField("Amount Name", text: $amountAndUnitSelectionData.amountName)
+                            TextField("Amount Name", text: $amountAndUnitSelectionData.amountName) { _ in} onCommit: {
+                                saveAmount()
+                            }
                             Spacer()
                             Image(systemName: "pencil")
                                 .foregroundColor(.green)
@@ -287,7 +291,7 @@ struct AmountAndUnitSelectionView: View {
     
     private func addUnit() {
         let newUnit = IngredientUnit(context: viewContext)
-        newUnit.name = "New Unit"
+        newUnit.name = "NewUnit"
         amountAndUnitSelectionData.addUnit(newUnit)
     }
     
@@ -304,7 +308,7 @@ struct AmountAndUnitSelectionView: View {
     
     private func addAmount() {
         let newAmount = IngredientUnitAmount(context: viewContext)
-        newAmount.name = "New Amount"
+        newAmount.name = "NewAmount"
         amountAndUnitSelectionData.addAmount(newAmount)
     }
     

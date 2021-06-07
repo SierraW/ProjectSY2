@@ -8,48 +8,68 @@
 import SwiftUI
 
 struct IngredientAmountUnitSelectionView: View {
-    var showTitle = false
+    var ingredients: [Ingredient]
     var selected: (Ingredient, IngredientUnit, IngredientUnitAmount) -> Void
     @State var selectedIngredient: Ingredient?
+    @State var focusOnIngredients = false
     
     var body: some View {
-        if selectedIngredient == nil {
-            IngredientListView(showTitle: showTitle) { ing in
-                set(ing)
-            }
-            .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-            .environmentObject(IngredientData())
-            
-        } else {
-            VStack {
-                HStack {
-                    Image(systemName: "chevron.backward")
-                        .foregroundColor(.blue)
-                        .gesture(TapGesture().onEnded({ _ in
-                            set(nil)
-                        }))
-                    Text(selectedIngredient?.name ?? "Error item")
-                    Spacer()
-                }
-                .padding()
+        HStack {
+            if !focusOnIngredients, let selectedIngredient = selectedIngredient {
+                Button(action: {
+                    focusOnIngredients = true
+                }, label: {
+                    Text(selectedIngredient.name ?? "Error item")
+                        .rotationEffect(.degrees(270))
+                        .frame(width: 100, height: 10, alignment: .center)
+                })
+                .frame(width: 10, height: 100, alignment: .center)
                 AmountAndUnitSelectionView { unit, amount in
-                    selected(selectedIngredient!, unit, amount)
+                    selected(selectedIngredient, unit, amount)
                 }
                 .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                .environmentObject(AmountAndUnitSelectionData(selectedIngredient!))
+                .environmentObject(AmountAndUnitSelectionData(selectedIngredient))
+            } else if ingredients.isEmpty {
+                Text("Empty")
+            } else {
+                List {
+                    ForEach(ingredients) { ingredient in
+                        Button(action: {
+                            if let selectedIngredient = selectedIngredient, selectedIngredient == ingredient {
+                                set(nil)
+                            } else {
+                                set(ingredient)
+                            }
+                        }, label: {
+                            Text(ingredient.name ?? "Error item")
+                        })
+                    }
+                }
+                if let _ = selectedIngredient {
+                    Button(action: {
+                        focusOnIngredients = false
+                    }, label: {
+                        Text("Amount & Unit")
+                            .rotationEffect(.degrees(90))
+                            .frame(width: 200, height: 15, alignment: .center)
+                    })
+                    .frame(width: 15, height: 200, alignment: .center)
+                }
             }
         }
     }
     
     func set(_ ingredient: Ingredient?) {
+        if ingredient == nil {
+            if focusOnIngredients {
+                focusOnIngredients = false
+                return
+            }
+            focusOnIngredients = true
+        } else {
+            focusOnIngredients = false
+        }
         self.selectedIngredient = ingredient
     }
 }
 
-struct IngredientAmountUnitSelectionView_Previews: PreviewProvider {
-    static var previews: some View {
-        IngredientAmountUnitSelectionView { _, _, _ in
-            // gugu
-        }
-    }
-}

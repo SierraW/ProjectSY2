@@ -38,6 +38,12 @@ class DrinkMakerContainerData: ObservableObject {
         }
     }
     
+    func setFocus() {
+        if ingredientNotEmpty && operationNotEmpty {
+            isSelectedIngredient.toggle()
+        }
+    }
+    
     func add(_ step: Step) {
         if let history = history {
             history.addToSteps(step)
@@ -87,8 +93,12 @@ struct DrinkMakerContainerView: View {
         HStack {
             Spacer()
             if data.ingredientNotEmpty {
-                Text("Ingredients")
-                    .foregroundColor(.blue)
+                Button(action: {
+                    data.setFocus()
+                }, label: {
+                    Text("Ingredients")
+                        .foregroundColor(.blue)
+                })
             } else {
                 Text("Ingredients")
                     .foregroundColor(.gray)
@@ -97,8 +107,12 @@ struct DrinkMakerContainerView: View {
             Divider()
             Spacer()
             if data.operationNotEmpty {
-                Text("Operations")
-                    .foregroundColor(.blue)
+                Button(action: {
+                    data.setFocus()
+                }, label: {
+                    Text("Operations")
+                        .foregroundColor(.blue)
+                })
             } else {
                 Text("Operations")
                     .foregroundColor(.gray)

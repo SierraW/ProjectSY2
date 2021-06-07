@@ -199,7 +199,7 @@ struct DrinkMakerView: View {
                 if !isShowingIngredientSelectionView && !isShowingOperationSelectionView {
                     containList
                         .transition(.move(edge: .bottom))
-                        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 200, alignment: .topLeading)
+                        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 230, alignment: .topLeading)
                 }
                 Button(action: {
                     submit()
@@ -301,20 +301,35 @@ struct DrinkMakerView: View {
                         
                     })
                 }
-                if isShowingIngredientSelectionView {
-                    HStack {
-                        IngredientAmountUnitSelectionView(showTitle: false) { ingredient, unit, amount in
-                            addToProductContainer(ingredient, unit: unit, amount: amount)
+                Section {
+                    if isShowingIngredientSelectionView {
+                        if let productContainer = drinkMakerData.productContainer, let ingredientSet = productContainer.ingredients as? Set<Ingredient> {
+                            IngredientAmountUnitSelectionView(ingredients: Array(ingredientSet)) { ingredient, unit, amount in
+                                addToProductContainer(ingredient, unit: unit, amount: amount)
+                            }
+                        }
+                        
+                    }
+                    if isShowingOperationSelectionView {
+                        if let productContainer = drinkMakerData.productContainer, let operationSet = productContainer.operations as? Set<Operation> {
+                            let operations = Array(operationSet)
+                            if operations.isEmpty {
+                                Text("Empty")
+                            } else {
+                                List {
+                                    ForEach(operations) { operation in
+                                        Button(action: {
+                                            addToProductContainer(operation)
+                                        }, label: {
+                                            Text(operation.name ?? "Error item")
+                                        })
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-                if isShowingOperationSelectionView {
-                    OperationListView(showTitle: false) { operation in
-                        addToProductContainer(operation)
-                    }
-                    .environment(\.managedObjectContext, viewContext)
-                    .environmentObject(OperationData())
-                }
+                .transition(.opacity)
             }
             .padding()
         } else {

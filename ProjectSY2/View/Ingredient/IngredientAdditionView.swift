@@ -11,22 +11,10 @@ import Combine
 class IngredientData: ObservableObject {
     @Published var ingredient: Ingredient? = nil
     @Published var name = ""
-    @Published var containers: [Container] = []
-    @Published var operations: [Operation] = []
     @Published var isShowingIngredientDetailView = false
     
     func set(_ ingredient: Ingredient?) {
         self.name = ""
-        self.containers = []
-        self.operations = []
-        if let ingredient = ingredient {
-            if let containers = ingredient.containers {
-                self.containers = Array(containers as! Set<Container>)
-            }
-            if let operations = ingredient.operations {
-                self.operations = Array(operations as! Set<Operation>)
-            }
-        }
         self.ingredient = ingredient
         self.isShowingIngredientDetailView = true
     }
@@ -34,7 +22,7 @@ class IngredientData: ObservableObject {
 
 struct IngredientAdditionView: View {
     @Environment(\.managedObjectContext) private var viewContext
-    @EnvironmentObject var ingredientData: IngredientData
+    @EnvironmentObject var data: IngredientData
     @State var emptyTitleWarning = false
     @State var modifyWarning = false
     @State var isSelectingContainer = false
@@ -44,12 +32,17 @@ struct IngredientAdditionView: View {
         VStack {
             VStack {
                 HStack {
-                    title
+                    Text("Ingredient")
                     Spacer()
                 }
-                TextField("New name...", text: $ingredientData.name)
-                    .font(.title2)
-                    .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
+                HStack {
+                    Image(systemName: "pencil")
+                    TextField("Name of the ingredient", text: $data.name, onEditingChanged: {_ in }) {
+                        submit()
+                    }
+                        .font(.title2)
+                        .border(emptyTitleWarning ? Color.red : Color.clear, width: 2)
+                }
                 HStack {
                     Text("Unit and Amount Settings")
                         .font(.title3)
@@ -59,46 +52,19 @@ struct IngredientAdditionView: View {
                 auView
             }
             .padding()
-            Button(action: {
-                verifyFields()
-            }, label: {
-                SubmitButtonView(title: "Submit")
-            })
         }
-        .sheet(isPresented: $isSelectingOperation, content: {
-            OperationListView(showTitle: true) { operation in
-                isSelectingOperation = false
-                self.addOperation(operation)
-            }
-            .environment(\.managedObjectContext, viewContext)
-            .environmentObject(OperationData())
-        })
-        .sheet(isPresented: $isSelectingContainer, content: {
-            ContainerListView(isDeleteDisabled: true) { container in
-                isSelectingContainer = false
-                self.addContainer(container)
-            }
-            .environment(\.managedObjectContext, viewContext)
-            .environmentObject(ContainerData())
-        })
         .alert(isPresented: $emptyTitleWarning, content: {
-            Alert(title: Text("Name cannot be empty."))
-        })
-        .alert(isPresented: $modifyWarning, content: {
-            Alert(title: Text("Changes about to apply"), message: Text("Name of the ingredient: \(ingredientData.name), and the containers above."), primaryButton: .cancel(), secondaryButton: .default(Text("Ok"), action: {
-                self.modifyWarning = false
-                self.submit()
-            }))
+            Alert(title: Text("Name of the ingredient cannot be empty."))
         })
     }
     
     @ViewBuilder
     var title: some View {
-        if ingredientData.ingredient == nil {
+        if data.ingredient == nil {
             Text("New Ingredient")
                 .font(.title)
         } else {
-            Text(ingredientData.ingredient!.name ?? "Unnamed")
+            Text(data.ingredient!.name ?? "Unnamed")
                 .font(.title)
         }
     }
@@ -106,78 +72,43 @@ struct IngredientAdditionView: View {
     @ViewBuilder
     var auView: some View {
         VStack {
-            if ingredientData.ingredient == nil {
+            if data.ingredient == nil {
                 Text("Not available")
             } else {
                 AmountAndUnitSelectionView()
                     .environment(\.managedObjectContext, viewContext)
-                    .environmentObject(AmountAndUnitSelectionData(ingredientData.ingredient!))
+                    .environmentObject(AmountAndUnitSelectionData(data.ingredient!))
             }
         }
         .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 0, idealHeight: 100, maxHeight: .infinity, alignment: .center)
     }
     
-    private func addContainer(_ container: Container) {
-        ingredientData.containers.append(container)
-        ingredientData.ingredient?.addToContainers(container)
-    }
-    
-    private func addOperation(_ operation: Operation) {
-        ingredientData.operations.append(operation)
-        ingredientData.ingredient?.addToOperations(operation)
-    }
-    
-    private func deleteContainer(_ indexSet: IndexSet) {
-        if ingredientData.ingredient != nil {
-            for index in indexSet {
-                let container = ingredientData.containers[index]
-                ingredientData.ingredient!.removeFromContainers(container)
-            }
-        }
-        ingredientData.containers.remove(atOffsets: indexSet)
-    }
-    
-    private func deleteOperation(_ indexSet: IndexSet) {
-        if ingredientData.ingredient != nil {
-            for index in indexSet {
-                let operation = ingredientData.operations[index]
-                ingredientData.ingredient!.removeFromOperations(operation)
-            }
-        }
-        ingredientData.operations.remove(atOffsets: indexSet)
-    }
-    
-    private func verifyFields() {
-        if ingredientData.name == "" && ingredientData.ingredient == nil {
-            emptyTitleWarning = true
-            return
-        }
-        modifyWarning = true
-    }
-    
     private func submit() {
         withAnimation {
-            if ingredientData.ingredient == nil {
-                let newItem = Ingredient(context: viewContext)
-                newItem.name = ingredientData.name
-                for container in ingredientData.containers {
-                    newItem.addToContainers(container)
+            if data.ingredient == nil {
+                if data.name != "" {
+                    let newItem = Ingredient(context: viewContext)
+                    newItem.name = data.name
+                } else {
+                    emptyTitleWarning = true
+                    return
                 }
-                for operation in ingredientData.operations {
-                    newItem.addToOperations(operation)
-                }
-            } else if ingredientData.name != "" {
-                ingredientData.ingredient!.name = ingredientData.name
+            } else if data.name != "" {
+                data.ingredient!.name = data.name
             }
-            do {
-                try viewContext.save()
-                ingredientData.isShowingIngredientDetailView = false
-            } catch {
-                // Replace this implementation with code to handle the error appropriately.
-                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                let nsError = error as NSError
-                fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
-            }
+            save()
+        }
+    }
+    
+    private func save() {
+        do {
+            try viewContext.save()
+            data.isShowingIngredientDetailView = false
+        } catch {
+            // Replace this implementation with code to handle the error appropriately.
+            // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+            let nsError = error as NSError
+            fatalError("Unresolved error \(nsError), \(nsError.userInfo)")
         }
     }
 }
