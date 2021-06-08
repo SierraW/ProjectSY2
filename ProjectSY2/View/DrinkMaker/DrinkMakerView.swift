@@ -23,7 +23,6 @@ class DrinkMakerData: ObservableObject {
     @Published var isShowingContainerSelectionView = false
     @Published var isShowingContainerEditingView = false
     @Published var isShowingVersionSelectionView = false
-    var questions: [Question] = []
     var drinkMakerContainerData: DrinkMakerContainerData? = nil
     var identifierGenerator = 0
     var productName: String {
@@ -68,31 +67,10 @@ class DrinkMakerData: ObservableObject {
         isShowingContainerEditingView = true
     }
     
-    func set() {
-        let timer = Timer(timeInterval: 1000, target: self, selector: #selector(loadQuestion), userInfo: nil, repeats: false)
-        timer.fire()
-    }
-    
-    @objc func loadQuestion() {
-        if mode == .Exam {
-            let count = exam?.answered ?? 0 + 1
-            if count < questions.count{
-                question = questions[Int(count)]
-                isLoading = false
-                return
-            }
-            submit()
-        }
-    }
-    
     func remove(_ history: History) {
         if let index = histories.firstIndex(of: history) {
             histories.remove(at: index)
         }
-    }
-    
-    func submit() {
-        
     }
 }
 
@@ -106,29 +84,10 @@ struct DrinkMakerView: View {
     @State var isReadyGoBack = false
     @State var isReadyForSubmit = false
     @State var isShowingStepsDetail = false
-    @State var isPresentAlert = false
-    @State var alertType: AlertType = .stepsNotEnough
     @State var isShowingIngredientSelectionView = false
     @State var isShowingOperationSelectionView = false
     @State var isPresentProductContainerContentView = false
     @State var timer: Timer?
-    
-    enum AlertType {
-        case productContainerIsMissing
-        case stepsNotEnough
-        case versionUnspecified
-        
-        func message() -> String {
-            switch self {
-            case .productContainerIsMissing:
-                return "Product container is missing"
-            case .versionUnspecified:
-                return "Add or select a product by clicking \"new product\" button"
-            default:
-                return "Your drink must contains at least one step"
-            }
-        }
-    }
     
     var body: some View {
         if drinkMakerData.isSubmitted {
@@ -157,7 +116,8 @@ struct DrinkMakerView: View {
                                 .transition(.slide)
                             } else {
                                 Text("DrinkMaker™")
-                                    .font(.title)
+                                    .font(.headline)
+                                    .foregroundColor(.gray)
                                     .transition(.opacity)
                                     .gesture(TapGesture().onEnded({ _ in
                                         withAnimation {
@@ -169,7 +129,7 @@ struct DrinkMakerView: View {
                         .frame(width: 300, height: 30, alignment: .leading)
                         Spacer()
                         Text(drinkMakerData.mode.rawValue)
-                            .font(.title2)
+                            .font(.headline)
                             .bold()
                             .foregroundColor(.gray)
                     }
@@ -179,7 +139,6 @@ struct DrinkMakerView: View {
                     HStack {
                         Text("Production Zone")
                             .font(.title3)
-                            .bold()
                         Spacer()
                     }
                 }
@@ -189,7 +148,6 @@ struct DrinkMakerView: View {
                 HStack {
                     Text("Preparation Zone")
                         .font(.title3)
-                        .bold()
                         .gesture(TapGesture().onEnded({ _ in
                             minimizedExtendedIOView()
                         }))
@@ -240,11 +198,8 @@ struct DrinkMakerView: View {
                     .environmentObject(drinkMakerData.drinkMakerContainerData!)
             })
             .sheet(isPresented: $isPresentProductContainerContentView, content: {
-                DrinkMakerProductContainerContentView(from: drinkMakerData.question!.version!)
+                DrinkMakerProductContainerContentView(from: drinkMakerData.question!.version!, showProdcutName: true)
                     .environmentObject(drinkMakerData)
-            })
-            .alert(isPresented: $isPresentAlert, content: {
-                Alert(title: Text(alertType.message()))
             })
         }
     }
@@ -253,17 +208,20 @@ struct DrinkMakerView: View {
     var productContainer: some View {
         if let _ = drinkMakerData.productContainer {
             VStack {
-                DrinkMakerProductContainerContentView()
-                    .environmentObject(drinkMakerData)
                 HStack {
+                    if let name = drinkMakerData.productContainer?.name {
+                        Text(name)
+                    }
+                    Spacer()
                     Button(action: {
                         controller.startOver()
                     }, label: {
                         Text("Start Over")
-                            .fontWeight(.bold)
                             .foregroundColor(.red)
                     })
                 }
+                DrinkMakerProductContainerContentView()
+                    .environmentObject(drinkMakerData)
                 HStack {
                     Button(action: {
                         withAnimation {
@@ -355,12 +313,14 @@ struct DrinkMakerView: View {
                 }
                 Spacer()
             }
-        } else if drinkMakerData.mode == .Exam {
+        } else if drinkMakerData.mode == .Exam, let exam = drinkMakerData.exam {
             HStack {
                 Text("\(drinkMakerData.question?.version?.product?.name ?? "Error item") - \(drinkMakerData.question?.version?.name ?? "Error item")")
                     .font(.title2)
                     .bold()
                 Spacer()
+                Text("\(exam.answered) / \(exam.questions?.count ?? 0)")
+                    .bold()
             }
         } else {
             HStack {
@@ -415,8 +375,13 @@ struct DrinkMakerView: View {
                             }))
                             HStack {
                                 Spacer()
-                                Text("Pour")
+                                Text("Discard")
                                     .foregroundColor(.red)
+                                    .gesture(TapGesture().onEnded({ _ in
+                                        discard(history)
+                                    }))
+                                Text("Pour")
+                                    .foregroundColor(.blue)
                                     .gesture(TapGesture().onEnded({ _ in
                                         pour(history)
                                     }))
@@ -439,7 +404,7 @@ struct DrinkMakerView: View {
         }
     }
     
-    func addContainer(_ container: Container) {
+    private func addContainer(_ container: Container) {
         let history = History(context: viewContext)
         history.identifier = drinkMakerData.generateId()
         history.container = container
@@ -447,21 +412,27 @@ struct DrinkMakerView: View {
         drinkMakerData.isShowingContainerSelectionView = false
     }
     
-    func addToProductContainer(_ ingredient: Ingredient, unit: IngredientUnit, amount: IngredientUnitAmount) {
+    private func addToProductContainer(_ ingredient: Ingredient, unit: IngredientUnit, amount: IngredientUnitAmount) {
         let step = Step(context: viewContext)
         step.identifier = drinkMakerData.generateId()
         step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(ingredient.name ?? "Error item")"
         drinkMakerData.steps.append(step)
     }
     
-    func addToProductContainer(_ operation: Operation) {
+    private func addToProductContainer(_ operation: Operation) {
         let step = Step(context: viewContext)
         step.identifier = drinkMakerData.generateId()
         step.name = "\(operation.name ?? "Error item")"
         drinkMakerData.steps.append(step)
     }
     
-    func pour(_ history: History) {
+    private func discard(_ historyToBeRemove: History) {
+        drinkMakerData.histories.removeAll { history in
+            history == historyToBeRemove
+        }
+    }
+    
+    private func pour(_ history: History) {
         if let _ = drinkMakerData.productContainer {
             let step = Step(context: viewContext)
             step.identifier = history.identifier
@@ -470,31 +441,31 @@ struct DrinkMakerView: View {
             addContainer(history.container!)
             drinkMakerData.remove(history)
         } else {
-            alertType = .productContainerIsMissing
-            isPresentAlert = true
+            sendWarning(with: "Product container is missing")
         }
     }
     
-    func verifyFields() -> Bool {
+    private func sendWarning(with message: String) {
+        landingViewData.showWarning(DrinkMakerWarning(id: ObjectIdentifier(Self.self), message: message))
+    }
+    
+    private func verifyFields() -> Bool {
         if drinkMakerData.productContainer == nil {
-            alertType = .productContainerIsMissing
-            isPresentAlert = true
+            sendWarning(with: "Product container is missing")
             return false
         }
         if drinkMakerData.steps.count == 0 {
-            alertType = .stepsNotEnough
-            isPresentAlert = true
+            sendWarning(with: "Your drink must contains at least one step")
             return false
         }
         if drinkMakerData.mode == .Creator && drinkMakerData.version == nil {
-            alertType = .versionUnspecified
-            isPresentAlert = true
+            sendWarning(with: "Add or select a product by clicking \"new product\" button")
             return false
         }
         return true
     }
     
-    func readyForGoingBack() {
+    private func readyForGoingBack() {
         if let timer = timer, timer.isValid {
             timer.fire()
         }
@@ -506,7 +477,7 @@ struct DrinkMakerView: View {
         })
     }
     
-    func submit() {
+    private func submit() {
         if !verifyFields() {
             return
         }
@@ -518,12 +489,15 @@ struct DrinkMakerView: View {
             return
         }
         if let timer = timer, timer.isValid {
-            timer.invalidate()
+            timer.fire()
         }
         switch drinkMakerData.mode {
         case .Exam:
             if !controller.nextQuestion() {
+                controller.submitExam()
                 drinkMakerData.isSubmitted = true
+            } else {
+                controller.startOver()
             }
             save()
         case .Creator:
@@ -531,12 +505,13 @@ struct DrinkMakerView: View {
             drinkMakerData.isSubmitted = true
             save()
         case .Practice:
+            controller.submitQuestion()
             drinkMakerData.isSubmitted = true
         }
         
     }
     
-    func save() {
+    private func save() {
         do {
             try viewContext.save()
         } catch {

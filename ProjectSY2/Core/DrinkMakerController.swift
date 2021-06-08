@@ -96,20 +96,30 @@ class DrinkMakerController {
                 }
                 data.exam = exam
                 data.mode = .Exam
+                let _ = nextQuestion()
                 return true
             }
         }
         return false
     }
     
-    func nextQuestion() -> Bool {
-        if let exam = data.exam, let questions = exam.questions as? Set<Question>, exam.answered < questions.count {
-            data.question?.productContainer = data.productContainer
+    func submitQuestion() {
+        if let question = data.question, let productContainer = data.productContainer{
+            question.answered = true
+            question.productContainer = productContainer
             for step in data.steps {
-                data.question?.addToSteps(step)
+                question.addToSteps(step)
             }
-            data.question = Array(questions)[Int(exam.answered)]
+        }
+    }
+    
+    func nextQuestion() -> Bool {
+        submitQuestion()
+        if let exam = data.exam, let questions = exam.questions as? Set<Question>, let question = questions.first(where: { question in
+            !question.answered
+        }) {
             exam.answered = exam.answered + 1
+            data.question = question
             return true
         }
         return false
@@ -119,6 +129,7 @@ class DrinkMakerController {
         if let version = question.version, let productContainer = question.productContainer , let steps = question.steps as? Set<Step> {
             if let ansPC = version.productContainer, let ansSteps = version.steps as? Set<Step>{
                 if productContainer == ansPC && DrinkMakerComparator.compare(steps, ansSteps) {
+                    question.isCorrect = true
                     return true
                 }
             }
@@ -126,16 +137,18 @@ class DrinkMakerController {
         return false
     }
     
-    func checkAll(for exam: Exam) -> Int {
-        var count = 0
+    func checkAll(for exam: Exam) {
         if let questionSet = exam.questions as? Set<Question> {
             for question in questionSet {
-                if checkError(for: question) {
-                    count += 1
-                }
+                let _ = checkError(for: question)
             }
         }
-        return count
+    }
+    
+    func submitExam() {
+        if let exam = data.exam {
+            checkAll(for: exam)
+        }
     }
     
     func submitVersion() {

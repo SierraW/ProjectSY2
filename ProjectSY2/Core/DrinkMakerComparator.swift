@@ -8,19 +8,23 @@
 import Foundation
 
 class DrinkMakerComparator {
+    static func compare(_ lhs: Step, _ rhs: Step) -> Bool {
+        return lhs.identifier < rhs.identifier
+    }
+    
     static func compare(_ lhs: Set<Step>, _ rhs: Set<Step>) -> Bool {
-        let lhsArr = Array(lhs).sorted { lhs, rhs in
-            lhs.identifier > rhs.identifier
-        }
-        let rhsArr = Array(rhs).sorted { lhs, rhs in
-            lhs.identifier > rhs.identifier
-        }
+        let lhsArr = Array(lhs).sorted(by: compare(_:_:))
+        let rhsArr = Array(rhs).sorted(by: compare(_:_:))
         if lhsArr.count != rhsArr.count {
             return false
         }
         for index in lhsArr.indices {
-            if lhsArr[index].name == nil && rhsArr[index].name == nil, let lhsStps = lhsArr[index].history?.steps as? Set<Step>, let rhsStps = rhsArr[index].history?.steps as? Set<Step> {
-                if !compare(lhsStps, rhsStps) {
+            if lhsArr[index].name == nil && rhsArr[index].name == nil {
+                if let lhsStps = lhsArr[index].history?.steps as? Set<Step>, let rhsStps = rhsArr[index].history?.steps as? Set<Step>, let lhsCon = lhsArr[index].history?.container, let rhsCon = rhsArr[index].history?.container, lhsCon == rhsCon {
+                    if !compare(lhsStps, rhsStps) {
+                        return false
+                    }
+                } else {
                     return false
                 }
             } else {

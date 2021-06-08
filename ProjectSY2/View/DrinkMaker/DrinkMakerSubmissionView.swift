@@ -9,6 +9,9 @@ import SwiftUI
 
 struct DrinkMakerSubmissionView: View {
     @Environment(\.managedObjectContext) var viewContext
+    @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Series.name, ascending: true)],
+                  animation: .default)
+    var serieses: FetchedResults<Series>
     @EnvironmentObject var drinkMakerData: DrinkMakerData
     @EnvironmentObject var landingViewData: LandingViewData
     @State var warningSaveFailed = false
@@ -31,36 +34,24 @@ struct DrinkMakerSubmissionView: View {
     @ViewBuilder
     var compareView: some View {
         VStack {
-            Section {
-                if let question = drinkMakerData.question, landingViewData.controller.checkError(for: question) {
-                    Text("Correct")
-                        .foregroundColor(.green)
-                } else {
-                    Text("Wrong")
-                        .foregroundColor(.red)
-                }
-            }
-            HStack {
-                VStack {
-                    Text("Your Answer")
-                    DrinkMakerProductContainerContentView()
-                        .environmentObject(drinkMakerData)
-                }
-                if let question = drinkMakerData.question, let version = question.version {
-                    VStack {
-                        Text("Correct Answer")
-                        DrinkMakerProductContainerContentView(from: version)
-                    }
-                }
+            if let question = drinkMakerData.question {
+                DrinkMakerComparisonView(from: question)
             }
             VStack {
                 Button(action: {
-                    landingViewData.controller.pracitcePreparingMode()
+                    if !landingViewData.controller.randomMode(serieses: Array(serieses)) {
+                        landingViewData.back(with: DrinkMakerWarning(id: ObjectIdentifier(Self.self), message: "Random failed: Not enough drink."))
+                    }
                 }, label: {
-                    SubmitButtonView(title: "Start again")
+                    SubmitButtonView(title: "Start with random drink")
                 })
                 Button(action: {
-                    landingViewData.isShowingMainMenu = true
+                    landingViewData.controller.pracitcePreparingMode()
+                }, label: {
+                    SubmitButtonView(title: "Start with specific drink")
+                })
+                Button(action: {
+                    landingViewData.back()
                 }, label: {
                     SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
                 })
@@ -80,7 +71,7 @@ struct DrinkMakerSubmissionView: View {
                     SubmitButtonView(title: "Start again")
                 })
                 Button(action: {
-                    landingViewData.isShowingMainMenu = true
+                    landingViewData.back()
                 }, label: {
                     SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
                 })
@@ -93,26 +84,33 @@ struct DrinkMakerSubmissionView: View {
         VStack {
             HStack {
                 Text("Exam Result")
-                    .font(.title)
-            }
-            if let exam = drinkMakerData.exam {
-                HStack {
-                    Text("Correct")
-                    Text("\(landingViewData.controller.checkAll(for: exam))")
-                }
-                HStack {
-                    Text("Total")
-                    Text("\(exam.questions?.count ?? 0)")
+                    .font(.title2)
+                    .padding(.trailing, 10)
+                if let questionSet = drinkMakerData.exam?.questions as? Set<Question> {
+                    DrinkMakerExamResultScoreWidgit(numberOfTotalQuestion: questionSet.count, numberOfCorrectQuestion: countCorrect(from: questionSet))
                 }
             }
-            
+            DrinkMakerExamResultListView(drinkMakerData)
+                .environmentObject(DrinkMakerExamResultData())
             Button(action: {
-                landingViewData.isShowingMainMenu = true
+                landingViewData.back()
             }, label: {
                 SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
             })
         }
     }
+    
+    private func countCorrect(from questionSet: Set<Question>) -> Int {
+        var counter = 0
+        questionSet.forEach { question in
+            if question.isCorrect {
+                counter += 1
+            }
+        }
+        return counter
+    }
+    
+    
     
     private func save() {
         do {

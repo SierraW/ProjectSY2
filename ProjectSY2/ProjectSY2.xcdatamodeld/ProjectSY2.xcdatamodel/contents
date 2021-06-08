@@ -59,7 +59,8 @@
         <relationship name="version" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Version" inverseName="productContainer" inverseEntity="Version"/>
     </entity>
     <entity name="Question" representedClassName="Question" syncable="YES" codeGenerationType="class">
-        <attribute name="isCorrect" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="answered" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="isCorrect" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="exam" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Exam" inverseName="questions" inverseEntity="Exam"/>
         <relationship name="productContainer" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="questions" inverseEntity="ProductContainer"/>
@@ -97,7 +98,7 @@
         <element name="Operation" positionX="-18" positionY="90" width="128" height="89"/>
         <element name="Product" positionX="-45" positionY="63" width="128" height="74"/>
         <element name="ProductContainer" positionX="-63" positionY="-9" width="128" height="104"/>
-        <element name="Question" positionX="-9" positionY="99" width="128" height="119"/>
+        <element name="Question" positionX="-9" positionY="99" width="128" height="134"/>
         <element name="Series" positionX="-36" positionY="72" width="128" height="59"/>
         <element name="Step" positionX="-54" positionY="9" width="128" height="119"/>
         <element name="Version" positionX="-27" positionY="81" width="128" height="119"/>

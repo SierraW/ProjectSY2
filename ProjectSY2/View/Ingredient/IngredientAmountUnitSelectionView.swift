@@ -17,11 +17,19 @@ struct IngredientAmountUnitSelectionView: View {
         HStack {
             if !focusOnIngredients, let selectedIngredient = selectedIngredient {
                 Button(action: {
-                    focusOnIngredients = true
+                    withAnimation {
+                        focusOnIngredients = true
+                    }
                 }, label: {
-                    Text(selectedIngredient.name ?? "Error item")
-                        .rotationEffect(.degrees(270))
-                        .frame(width: 100, height: 10, alignment: .center)
+                    HStack {
+                        Text(selectedIngredient.name ?? "Error item")
+                            .fontWeight(.heavy)
+                            .foregroundColor(.gray)
+                        Image(systemName: "arrow.up.circle")
+                            .foregroundColor(.gray)
+                    }
+                    .rotationEffect(.degrees(270))
+                    .frame(width: 200, height: 15, alignment: .center)
                 })
                 .frame(width: 10, height: 100, alignment: .center)
                 AmountAndUnitSelectionView { unit, amount in
@@ -47,11 +55,19 @@ struct IngredientAmountUnitSelectionView: View {
                 }
                 if let _ = selectedIngredient {
                     Button(action: {
-                        focusOnIngredients = false
+                        withAnimation {
+                            focusOnIngredients = false
+                        }
                     }, label: {
-                        Text("Amount & Unit")
-                            .rotationEffect(.degrees(90))
-                            .frame(width: 200, height: 15, alignment: .center)
+                        HStack {
+                            Image(systemName: "arrow.up.circle")
+                                .foregroundColor(.gray)
+                            Text("Amount & Unit")
+                                .fontWeight(.heavy)
+                                .foregroundColor(.gray)
+                        }
+                        .rotationEffect(.degrees(90))
+                        .frame(width: 200, height: 15, alignment: .center)
                     })
                     .frame(width: 15, height: 200, alignment: .center)
                 }
