@@ -41,7 +41,11 @@ struct DrinkMakerExamResultListView: View {
             }
         }
         .sheet(item: $data.selectedQuestion) { question in
-            DrinkMakerComparisonView(from: question)
+            VStack {
+                DrinkMakerComparisonView(from: question)
+                DrinkMakerResultCorrectionBar(question: question)
+                    .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+            }
         }
     }
 }

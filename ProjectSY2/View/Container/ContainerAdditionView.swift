@@ -99,18 +99,16 @@ struct ContainerAdditionView: View {
             .padding()
         }
         .sheet(isPresented: $isShowingIngredientSelectionView, content: {
-            IngredientListView() { ig in
+            IngredientListView(selectedIngredients: $data.ingredients) { ig in
                 data.add(ig)
-                isShowingIngredientSelectionView = false
                 save()
             }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(IngredientData())
         })
         .sheet(isPresented: $isShowingOperationSelectionView, content: {
-            OperationListView() { op in
+            OperationListView(selectedOperations: $data.operations) { op in
                 data.add(op)
-                isShowingOperationSelectionView = false
                 save()
             }
                 .environment(\.managedObjectContext, viewContext)

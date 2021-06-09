@@ -15,6 +15,7 @@ struct SeriesListView: View {
     @EnvironmentObject var pvData: ProductAndVersionData
     @Binding var isPresented: Bool
     @State var isShowingProductAndVersionView = false
+    @State var selectedVersion: Version?
     @State var editingSeries: Series?
     @State var seriesName: String = ""
     var isEditable = true
@@ -39,7 +40,9 @@ struct SeriesListView: View {
                 Divider()
                 Section {
                     if selected == nil {
-                        ProductAndVersionSelectionView(showTitle: true)
+                        ProductAndVersionSelectionView(showTitle: true) { _, version in
+                            selectedVersion = version
+                        }
                             .environment(\.managedObjectContext, viewContext)
                             .environmentObject(pvData)
                     } else {
@@ -58,6 +61,9 @@ struct SeriesListView: View {
             }
             Spacer()
         }
+        .sheet(item: $selectedVersion, content: { version in
+            DrinkMakerProductContainerContentView(from: version, showProdcutName: true, showsIsotopeMenu: true)
+        })
         .alert(isPresented: $isDeleteFailed, content: {
             Alert(title: Text("Delete failed."))
         })

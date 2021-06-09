@@ -13,6 +13,9 @@
 		3B05D6E7266FF000009D0EAE /* DrinkMakerComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6E6266FF000009D0EAE /* DrinkMakerComparisonView.swift */; };
 		3B05D6E9266FF9C6009D0EAE /* DrinkMakerExamResultScoreWidgit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6E8266FF9C6009D0EAE /* DrinkMakerExamResultScoreWidgit.swift */; };
 		3B05D6EB267000ED009D0EAE /* DrinkMakerWarning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6EA267000ED009D0EAE /* DrinkMakerWarning.swift */; };
+		3B05D6ED26706789009D0EAE /* DrinkMakerResultCorrectionBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6EC26706789009D0EAE /* DrinkMakerResultCorrectionBar.swift */; };
+		3B05D6EF26707294009D0EAE /* DrinkMakerIsotopeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6EE26707294009D0EAE /* DrinkMakerIsotopeController.swift */; };
+		3B05D6F1267079EC009D0EAE /* LabelledDivider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B05D6F0267079EC009D0EAE /* LabelledDivider.swift */; };
 		3B859B0126669DD40028A17F /* DrinkMakerMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B859B0026669DD40028A17F /* DrinkMakerMenuView.swift */; };
 		3B859B032666A0DD0028A17F /* DataStoreMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B859B022666A0DD0028A17F /* DataStoreMenuView.swift */; };
 		3B859B052666A1430028A17F /* LandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B859B042666A1430028A17F /* LandingView.swift */; };
@@ -70,6 +73,9 @@
 		3B05D6E6266FF000009D0EAE /* DrinkMakerComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerComparisonView.swift; sourceTree = "<group>"; };
 		3B05D6E8266FF9C6009D0EAE /* DrinkMakerExamResultScoreWidgit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerExamResultScoreWidgit.swift; sourceTree = "<group>"; };
 		3B05D6EA267000ED009D0EAE /* DrinkMakerWarning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerWarning.swift; sourceTree = "<group>"; };
+		3B05D6EC26706789009D0EAE /* DrinkMakerResultCorrectionBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerResultCorrectionBar.swift; sourceTree = "<group>"; };
+		3B05D6EE26707294009D0EAE /* DrinkMakerIsotopeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerIsotopeController.swift; sourceTree = "<group>"; };
+		3B05D6F0267079EC009D0EAE /* LabelledDivider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelledDivider.swift; sourceTree = "<group>"; };
 		3B859B0026669DD40028A17F /* DrinkMakerMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrinkMakerMenuView.swift; sourceTree = "<group>"; };
 		3B859B022666A0DD0028A17F /* DataStoreMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStoreMenuView.swift; sourceTree = "<group>"; };
 		3B859B042666A1430028A17F /* LandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LandingView.swift; sourceTree = "<group>"; };
@@ -221,6 +227,7 @@
 				3BBF0009265F4C4200EDE488 /* DrinkMakerController.swift */,
 				3B05D6E0266DCB86009D0EAE /* DrinkMakerComparator.swift */,
 				3B05D6EA267000ED009D0EAE /* DrinkMakerWarning.swift */,
+				3B05D6EE26707294009D0EAE /* DrinkMakerIsotopeController.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -282,6 +289,7 @@
 				3B05D6E4266FED27009D0EAE /* DrinkMakerExamResultListViewCell.swift */,
 				3B05D6E6266FF000009D0EAE /* DrinkMakerComparisonView.swift */,
 				3B05D6E8266FF9C6009D0EAE /* DrinkMakerExamResultScoreWidgit.swift */,
+				3B05D6EC26706789009D0EAE /* DrinkMakerResultCorrectionBar.swift */,
 			);
 			path = DrinkMaker;
 			sourceTree = "<group>";
@@ -290,6 +298,7 @@
 			isa = PBXGroup;
 			children = (
 				3BAEEFCF265EA70F0006E415 /* SubmitButtonView.swift */,
+				3B05D6F0267079EC009D0EAE /* LabelledDivider.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -452,6 +461,7 @@
 				3B859B15266B56C10028A17F /* DrinkMakerProductContainerContentView.swift in Sources */,
 				3BAEEF9F265E9BC70006E415 /* ProjectSY2.xcdatamodeld in Sources */,
 				3B859B13266875F10028A17F /* IngredientAmountUnitSelectionView.swift in Sources */,
+				3B05D6ED26706789009D0EAE /* DrinkMakerResultCorrectionBar.swift in Sources */,
 				3BAEEF9C265E9BC70006E415 /* Persistence.swift in Sources */,
 				3BAEEFD2265EDFE10006E415 /* ContainerListView.swift in Sources */,
 				3B859B092666B4E30028A17F /* DrinkMakerLoadingView.swift in Sources */,
@@ -459,6 +469,7 @@
 				3BAEEFCD265EA3B90006E415 /* IngredientAdditionView.swift in Sources */,
 				3B859B0B2666B9410028A17F /* DrinkMakerSubmissionView.swift in Sources */,
 				3BAEEF95265E9BC40006E415 /* ContentView.swift in Sources */,
+				3B05D6EF26707294009D0EAE /* DrinkMakerIsotopeController.swift in Sources */,
 				3B859B0F266727CA0028A17F /* DrinkMakerStepsView.swift in Sources */,
 				3B05D6E3266FE969009D0EAE /* DrinkMakerExamResultListView.swift in Sources */,
 				3B05D6E7266FF000009D0EAE /* DrinkMakerComparisonView.swift in Sources */,
@@ -466,6 +477,7 @@
 				3BBF000A265F4C4200EDE488 /* DrinkMakerController.swift in Sources */,
 				3B05D6EB267000ED009D0EAE /* DrinkMakerWarning.swift in Sources */,
 				3BAEEFD6265EE0150006E415 /* ProductContainerListView.swift in Sources */,
+				3B05D6F1267079EC009D0EAE /* LabelledDivider.swift in Sources */,
 				3B859B0D2666F23C0028A17F /* ProductAndVersionSelectionView.swift in Sources */,
 				3BAEEF93265E9BC40006E415 /* ProjectSY2App.swift in Sources */,
 				3BC0A3D9266002C30058C261 /* DrinkMakerContainerView.swift in Sources */,

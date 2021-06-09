@@ -10,17 +10,28 @@ import SwiftUI
 struct DrinkMakerProductContainerContentView: View {
     @EnvironmentObject var data: DrinkMakerData
     var isLivePreview: Bool
+    var isotopes: [Isotope] = []
     var name: String?
     var productContainer: ProductContainer?
     var steps: [Step] = []
+    @State var selectedIsotope: Isotope?
     @Namespace var bottomId
+    
+    var dateFormatter: DateFormatter {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        return dateFormatter
+    }
     
     init() {
         isLivePreview = true
     }
     
-    init(from version: Version, showProdcutName: Bool) {
+    init(from version: Version, showProdcutName: Bool = false, showsIsotopeMenu: Bool = false) {
         isLivePreview = false
+        if showsIsotopeMenu, let isotopeSet = version.isotopes as? Set<Isotope> {
+            isotopes = Array(isotopeSet)
+        }
         name = showProdcutName ? "\(version.product?.name ?? "Error item") - \(version.name ?? "Error item")" : nil
         productContainer = version.productContainer
         if let steps = version.steps as? Set<Step> {
@@ -35,11 +46,45 @@ struct DrinkMakerProductContainerContentView: View {
         self.steps = steps
     }
     
+    init(from isotope: Isotope) {
+        isLivePreview = false
+        if let timestamp = isotope.timestamp {
+            name = dateFormatter.string(from: timestamp)
+        }
+        if let pc = isotope.productContainer {
+            productContainer = pc
+        }
+        if let stepSet = isotope.steps as? Set<Step> {
+            steps = Array(stepSet)
+        }
+    }
+    
     var body: some View {
-        if isLivePreview {
-            livePreview
-        } else {
-            review
+        VStack {
+            if isLivePreview {
+                livePreview
+            } else {
+                review
+            }
+            if !isotopes.isEmpty {
+                Divider()
+                VStack {
+                    Text("More version")
+                    List {
+                        ForEach(isotopes) { isotope in
+                            Button(action: {
+                                selectedIsotope = isotope
+                            }, label: {
+                                Text(dateFormatter.string(from: isotope.timestamp ?? Date()))
+                            })
+                        }
+                    }
+                }
+                .padding()
+            }
+        }
+        .sheet(item: $selectedIsotope) { isotope in
+            DrinkMakerProductContainerContentView(from: isotope)
         }
     }
     
@@ -79,6 +124,7 @@ struct DrinkMakerProductContainerContentView: View {
             if let name = name {
                 Text(name)
                     .font(.caption)
+                    .padding(.leading, 5)
             }
             if let productContainer = productContainer {
                 HStack {

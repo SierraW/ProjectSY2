@@ -13,6 +13,7 @@ struct IngredientListView: View {
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Ingredient.name, ascending: true)],
                   animation: .default)
     var ingredients: FetchedResults<Ingredient>
+    @Binding var selectedIngredients: [Ingredient]
     var showTitle = true
     var editDisabled = false
     var selected: ((Ingredient) -> Void)?
@@ -63,6 +64,10 @@ struct IngredientListView: View {
                                     selected!(item)
                                 }))
                             Spacer()
+                            if !selectedIngredients.isEmpty && selectedIngredientsContains(item){
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.green)
+                            }
                             Image(systemName: "pencil")
                                 .foregroundColor(.blue)
                                 .gesture(TapGesture().onEnded({ _ in
@@ -76,8 +81,12 @@ struct IngredientListView: View {
             }
         }
     }
+
+    private func selectedIngredientsContains(_ ingredient: Ingredient) -> Bool {
+        return selectedIngredients.contains(ingredient)
+    }
     
-    func removeIngredients(_ indexSet: IndexSet) {
+    private func removeIngredients(_ indexSet: IndexSet) {
         for index in indexSet {
             let ingredient = ingredients[index]
             viewContext.delete(ingredient)
@@ -92,7 +101,7 @@ struct IngredientListView: View {
 
 struct IngredientListView_Previews: PreviewProvider {
     static var previews: some View {
-        IngredientListView()
+        IngredientListView(selectedIngredients: .constant([]))
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
             .environmentObject(IngredientData())
     }

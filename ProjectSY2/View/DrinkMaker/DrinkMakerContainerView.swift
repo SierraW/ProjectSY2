@@ -159,7 +159,13 @@ struct DrinkMakerContainerView: View {
     var operationAction: some View {
         List {
             ForEach(data.operations) { operation in
-                Text(operation.name ?? "Error item")
+                Button(action: {
+                    let step = Step(context: viewContext)
+                    step.name = operation.name
+                    data.add(step)
+                }, label: {
+                    Text(operation.name ?? "Error item")
+                })
             }
         }
     }

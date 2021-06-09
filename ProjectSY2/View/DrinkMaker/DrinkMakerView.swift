@@ -494,7 +494,6 @@ struct DrinkMakerView: View {
         switch drinkMakerData.mode {
         case .Exam:
             if !controller.nextQuestion() {
-                controller.submitExam()
                 drinkMakerData.isSubmitted = true
             } else {
                 controller.startOver()
