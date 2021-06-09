@@ -9,12 +9,21 @@ import SwiftUI
 
 struct LabelledDivider: View {
 
-    let image: Image
+    let image: Image?
+    let label: Text?
     let horizontalPadding: CGFloat
     let color: Color
 
     init(image: Image, horizontalPadding: CGFloat = 20, color: Color = .gray) {
         self.image = image
+        self.label = nil
+        self.horizontalPadding = horizontalPadding
+        self.color = color
+    }
+    
+    init(label: Text, horizontalPadding: CGFloat = 20, color: Color = .gray) {
+        self.image = nil
+        self.label = label
         self.horizontalPadding = horizontalPadding
         self.color = color
     }
@@ -22,7 +31,11 @@ struct LabelledDivider: View {
     var body: some View {
         HStack {
             line
-            image.foregroundColor(color).imageScale(.large)
+            if let image = image {
+                image.foregroundColor(color).imageScale(.large)
+            } else if let label = label {
+                label.foregroundColor(color)
+            }
             line
         }
     }

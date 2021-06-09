@@ -10,12 +10,17 @@ import SwiftUI
 struct DrinkMakerResultCorrectionBar: View {
     @Environment(\.managedObjectContext) var viewContext
     var question: Question
-    @State var activated = true
+    var changed: (() -> Void)?
+    @State var activated = false
+    @State var modified = false
     let controller = DrinkMakerIsotopeController()
     
     var body: some View {
         Section {
-            if activated {
+            if modified {
+                LabelledDivider(label: Text("Change saved"), horizontalPadding: 20, color: .green)
+                    .transition(.move(edge: .trailing))
+            } else if activated {
                 VStack {
                     Text("The answer for this question should be...")
                     HStack {
@@ -23,6 +28,9 @@ struct DrinkMakerResultCorrectionBar: View {
                         Button(action: {
                             withAnimation {
                                 let _ = controller.markAnswerWrong(from: question)
+                                modified = true
+                                save()
+                                changed?()
                             }
                         }, label: {
                             Text("Wrong")
@@ -45,6 +53,9 @@ struct DrinkMakerResultCorrectionBar: View {
                         Button(action: {
                             withAnimation {
                                 let _ = controller.markAnswerRight(from: question, with: Isotope(context: viewContext))
+                                modified = true
+                                save()
+                                changed?()
                             }
                         }, label: {
                             Text("Right")
@@ -57,7 +68,7 @@ struct DrinkMakerResultCorrectionBar: View {
                     }
                     .padding(.top, 1)
                 }
-                .transition(.move(edge: .leading))
+                .transition(.move(edge: .trailing))
             } else {
                 Button(action: {
                     withAnimation {
@@ -68,6 +79,14 @@ struct DrinkMakerResultCorrectionBar: View {
                 })
                 .transition(.move(edge: .trailing))
             }
+        }
+    }
+    
+    private func save() {
+        do {
+            try viewContext.save()
+        } catch {
+            
         }
     }
 }

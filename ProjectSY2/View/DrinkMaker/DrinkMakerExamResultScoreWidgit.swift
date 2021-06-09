@@ -9,7 +9,7 @@ import SwiftUI
 
 struct DrinkMakerExamResultScoreWidgit: View {
     var numberOfTotalQuestion = 0
-    var numberOfCorrectQuestion = 0
+    @Binding var numberOfCorrectQuestion: Int
     @State var isShowingPercentage = true
     var ratio: Double {
         Double(numberOfCorrectQuestion) / Double(numberOfTotalQuestion)
@@ -24,15 +24,20 @@ struct DrinkMakerExamResultScoreWidgit: View {
                 isShowingPercentage.toggle()
             }
         }, label: {
-            Text(isShowingPercentage ? percentage : "\(numberOfCorrectQuestion) / \(numberOfTotalQuestion)")
-                .foregroundColor(ratio > 0.9 ? .green : .red)
-                .font(.title2)
+            HStack {
+                Spacer()
+                Text(isShowingPercentage ? percentage : "\(numberOfCorrectQuestion) / \(numberOfTotalQuestion)")
+                    .foregroundColor(ratio > 0.9 ? .green : .red)
+                    .font(.title2)
+                    .transition(.opacity)
+                Spacer()
+            }
         })
     }
 }
 
 struct DrinkMakerExamResultScoreWidgit_Previews: PreviewProvider {
     static var previews: some View {
-        DrinkMakerExamResultScoreWidgit()
+        DrinkMakerExamResultScoreWidgit(numberOfCorrectQuestion: .constant(0))
     }
 }

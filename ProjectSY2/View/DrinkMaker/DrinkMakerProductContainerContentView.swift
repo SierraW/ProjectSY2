@@ -8,12 +8,15 @@
 import SwiftUI
 
 struct DrinkMakerProductContainerContentView: View {
+    @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var data: DrinkMakerData
     var isLivePreview: Bool
-    var isotopes: [Isotope] = []
+    @State var isotopes: [Isotope] = []
     var name: String?
     var productContainer: ProductContainer?
     var steps: [Step] = []
+    var creativeModeAction: ((Version) -> Void)?
+    var version: Version?
     @State var selectedIsotope: Isotope?
     @Namespace var bottomId
     
@@ -27,10 +30,12 @@ struct DrinkMakerProductContainerContentView: View {
         isLivePreview = true
     }
     
-    init(from version: Version, showProdcutName: Bool = false, showsIsotopeMenu: Bool = false) {
+    init(from version: Version, showProdcutName: Bool = false, showsIsotopeMenu: Bool = false, creativeModeAction: ((Version) -> Void)? = nil) {
         isLivePreview = false
+        self.creativeModeAction = creativeModeAction
+        self.version = version
         if showsIsotopeMenu, let isotopeSet = version.isotopes as? Set<Isotope> {
-            isotopes = Array(isotopeSet)
+            _isotopes = State(initialValue: Array(isotopeSet))
         }
         name = showProdcutName ? "\(version.product?.name ?? "Error item") - \(version.name ?? "Error item")" : nil
         productContainer = version.productContainer
@@ -65,6 +70,19 @@ struct DrinkMakerProductContainerContentView: View {
                 livePreview
             } else {
                 review
+                HStack(spacing: 0) {
+                    Text("Use")
+                    Text(" Creative Mode ")
+                        .onTapGesture {
+                            if let version = version, let creativeModeAction = creativeModeAction {
+                                withAnimation {
+                                    creativeModeAction(version)
+                                }
+                            }
+                        }
+                        .foregroundColor(creativeModeAction == nil ? .black : .blue)
+                    Text("to modify main answer")
+                }
             }
             if !isotopes.isEmpty {
                 Divider()
@@ -78,6 +96,7 @@ struct DrinkMakerProductContainerContentView: View {
                                 Text(dateFormatter.string(from: isotope.timestamp ?? Date()))
                             })
                         }
+                        .onDelete(perform: removeIsotope(atOffset:))
                     }
                 }
                 .padding()
@@ -123,14 +142,10 @@ struct DrinkMakerProductContainerContentView: View {
         VStack {
             if let name = name {
                 Text(name)
-                    .font(.caption)
-                    .padding(.leading, 5)
+                    .padding()
             }
             if let productContainer = productContainer {
-                HStack {
-                    Text(productContainer.name ?? "Error item")
-                    Spacer()
-                }
+                Text(productContainer.name ?? "Error item")
             }
             if steps.isEmpty {
                 Text("Empty")
@@ -150,6 +165,20 @@ struct DrinkMakerProductContainerContentView: View {
                         }
                     }
                 }
+            }
+        }
+    }
+    
+    private func removeIsotope(atOffset indexSet: IndexSet) {
+        if !isotopes.isEmpty {
+            for index in indexSet {
+                viewContext.delete(isotopes[index])
+            }
+            isotopes.remove(atOffsets: indexSet)
+            do {
+                try viewContext.save()
+            } catch {
+                
             }
         }
     }

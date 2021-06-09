@@ -20,6 +20,11 @@ class DrinkMakerController {
         data.reset()
     }
     
+    func creatorMode(with version: Version) {
+        data.reset()
+        data.version = version
+    }
+    
     func pracitcePreparingMode() {
         data.reset()
         data.isLoading = true
@@ -111,7 +116,7 @@ class DrinkMakerController {
             for step in data.steps {
                 question.addToSteps(step)
             }
-            let _ = checkError(for: question)
+            question.isCorrect = isCorrect(for: question)
         }
     }
     
@@ -127,11 +132,10 @@ class DrinkMakerController {
         return false
     }
     
-    private func checkError(for question: Question) -> Bool {
+    private func isCorrect(for question: Question) -> Bool {
         if let version = question.version, let productContainer = question.productContainer , let steps = question.steps as? Set<Step> {
             if let ansPC = version.productContainer, let ansSteps = version.steps as? Set<Step>{
                 if productContainer == ansPC && DrinkMakerComparator.compare(steps, ansSteps) {
-                    question.isCorrect = true
                     return true
                 } else if let _ = isotopeController.find(question: question) {
                     return true

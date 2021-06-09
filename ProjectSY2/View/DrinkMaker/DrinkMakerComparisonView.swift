@@ -19,9 +19,9 @@ struct DrinkMakerComparisonView: View {
     init(from question: Question) {
         if let version = question.version, let opc = version.productContainer, let ost = version.steps as? Set<Step>, let cpc = question.productContainer, let cst = question.steps as? Set<Step> {
             originalProductContainer = opc
-            originalSteps = Array(ost)
+            originalSteps = Array(ost).sorted(by: DrinkMakerComparator.compare(_:_:))
             comparedProductContainer = cpc
-            comparedSteps = Array(cst)
+            comparedSteps = Array(cst).sorted(by: DrinkMakerComparator.compare(_:_:))
             isSuccessful = true
         }
     }

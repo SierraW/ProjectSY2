@@ -20,6 +20,7 @@ struct SeriesListView: View {
     @State var seriesName: String = ""
     var isEditable = true
     var selected: ((Version) -> Void)?
+    var creativeModeAction: ((Version) -> Void)?
     @State var isDeleteFailed = false
     
     var body: some View {
@@ -52,9 +53,6 @@ struct SeriesListView: View {
                         }
                         .environment(\.managedObjectContext, viewContext)
                         .environmentObject(pvData)
-                        .onDisappear(perform: {
-                            isPresented = false
-                        })
                     }
                 }
                 .transition(.slide)
@@ -62,7 +60,13 @@ struct SeriesListView: View {
             Spacer()
         }
         .sheet(item: $selectedVersion, content: { version in
-            DrinkMakerProductContainerContentView(from: version, showProdcutName: true, showsIsotopeMenu: true)
+            DrinkMakerProductContainerContentView(from: version, showProdcutName: true, showsIsotopeMenu: true) { verison in
+                selectedVersion = nil
+                Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { timer in
+                    creativeModeAction?(version)
+                    timer.invalidate()
+                }
+            }
         })
         .alert(isPresented: $isDeleteFailed, content: {
             Alert(title: Text("Delete failed."))
@@ -100,7 +104,11 @@ struct SeriesListView: View {
                                 Text(ser.name ?? "Error item")
                                     .gesture(TapGesture().onEnded({ _ in
                                         if let series = pvData.series, series == ser {
-                                            set(nil)
+                                            if isShowingProductAndVersionView {
+                                                set(nil)
+                                            } else {
+                                                isShowingProductAndVersionView = true
+                                            }
                                         } else {
                                             set(ser)
                                         }
@@ -118,7 +126,11 @@ struct SeriesListView: View {
                             Text(ser.name ?? "Error item")
                                 .gesture(TapGesture().onEnded({ _ in
                                     if let series = pvData.series, series == ser {
-                                        set(nil)
+                                        if isShowingProductAndVersionView {
+                                            set(nil)
+                                        } else {
+                                            isShowingProductAndVersionView = true
+                                        }
                                     } else {
                                         set(ser)
                                     }
@@ -137,18 +149,14 @@ struct SeriesListView: View {
         for index in indexSet {
             viewContext.delete(serieses[index])
         }
-        do {
-            try viewContext.save()
-        } catch {
-            isDeleteFailed = true
-        }
+        save()
     }
     
     private func set(_ series: Series?) {
         if let series = series {
             pvData.set(series)
-            isShowingProductAndVersionView = true
         }
+        isShowingProductAndVersionView = series != nil
     }
     
     private func addSeries() {

@@ -24,11 +24,11 @@ class LandingViewData: ObservableObject {
     }
     
     func back(with warning: DrinkMakerWarning) {
-        showWarning(warning)
+        send(warning)
         isShowingMainMenu = true
     }
     
-    func showWarning(_ warning: DrinkMakerWarning) {
+    func send(_ warning: DrinkMakerWarning) {
         self.warning = warning
     }
 }
@@ -46,6 +46,7 @@ struct LandingView: View {
                             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
                             .environmentObject(data)
                         DataStoreMenuView()
+                            .environmentObject(data)
                     }
                     .navigationBarHidden(true)
                 }

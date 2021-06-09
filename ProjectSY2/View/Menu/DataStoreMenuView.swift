@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct DataStoreMenuView: View {
+    @EnvironmentObject var landingViewData: LandingViewData
+    var controller: DrinkMakerController {
+        landingViewData.controller
+    }
+    
     var body: some View {
         VStack {
             HStack {
@@ -46,7 +51,10 @@ struct DataStoreMenuView: View {
                         SubmitButtonView(title: "Operaion", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
                     })
                 NavigationLink(
-                    destination: SeriesListView(isPresented: .constant(true))
+                    destination: SeriesListView(isPresented: .constant(true), creativeModeAction: { version in
+                        controller.creatorMode(with: version)
+                        landingViewData.isShowingMainMenu = false
+                    })
                         .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
                         .environmentObject(ProductAndVersionData(nil)),
                     label: {

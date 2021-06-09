@@ -13,19 +13,22 @@ struct ProductContainerListView: View {
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \ProductContainer.name, ascending: true)],
                   animation: .default)
     var productContainers: FetchedResults<ProductContainer>
+    var showTitle = true
     var selected: ((ProductContainer) -> Void)?
     @State var isFailedToDelete = false
     
     var body: some View {
         ZStack {
             VStack {
-                HStack {
-                    Text("Product Containers")
-                        .font(.title)
-                    Spacer()
-                    if selected == nil {
-                        Button("Add") {
-                            data.set(nil)
+                if showTitle {
+                    HStack {
+                        Text("Product Containers")
+                            .font(.title)
+                        Spacer()
+                        if selected == nil {
+                            Button("Add") {
+                                data.set(nil)
+                            }
                         }
                     }
                 }

@@ -14,7 +14,6 @@ struct DrinkMakerSubmissionView: View {
     var serieses: FetchedResults<Series>
     @EnvironmentObject var drinkMakerData: DrinkMakerData
     @EnvironmentObject var landingViewData: LandingViewData
-    @State var warningSaveFailed = false
     
     var body: some View {
         Section {
@@ -26,16 +25,19 @@ struct DrinkMakerSubmissionView: View {
                 compareView
             }
         }
-        .alert(isPresented: $warningSaveFailed, content: {
-            Alert(title: Text("Save failed"))
-        })
     }
     
     @ViewBuilder
     var compareView: some View {
         VStack {
             if let question = drinkMakerData.question {
-                DrinkMakerComparisonView(from: question)
+                VStack {
+                    Text(question.isCorrect ? "Correct" : "Wrong")
+                        .foregroundColor(question.isCorrect ? .green : .red)
+                    DrinkMakerComparisonView(from: question)
+                    DrinkMakerResultCorrectionBar(question: question)
+                        .environment(\.managedObjectContext, viewContext)
+                }
             }
             VStack {
                 Button(action: {
@@ -82,14 +84,6 @@ struct DrinkMakerSubmissionView: View {
     @ViewBuilder
     var examResult: some View {
         VStack {
-            HStack {
-                Text("Exam Result")
-                    .font(.title2)
-                    .padding(.trailing, 10)
-                if let questionSet = drinkMakerData.exam?.questions as? Set<Question> {
-                    DrinkMakerExamResultScoreWidgit(numberOfTotalQuestion: questionSet.count, numberOfCorrectQuestion: countCorrect(from: questionSet))
-                }
-            }
             DrinkMakerExamResultListView(drinkMakerData)
                 .environmentObject(DrinkMakerExamResultData())
             Button(action: {
@@ -100,23 +94,13 @@ struct DrinkMakerSubmissionView: View {
         }
     }
     
-    private func countCorrect(from questionSet: Set<Question>) -> Int {
-        var counter = 0
-        questionSet.forEach { question in
-            if question.isCorrect {
-                counter += 1
-            }
-        }
-        return counter
-    }
-    
     
     
     private func save() {
         do {
             try viewContext.save()
         } catch {
-            warningSaveFailed = true
+            landingViewData.send(DrinkMakerWarning(id: ObjectIdentifier(Self.self), message: "Save failed"))
         }
     }
 }

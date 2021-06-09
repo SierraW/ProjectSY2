@@ -14,7 +14,7 @@ class IngredientData: ObservableObject {
     @Published var isShowingIngredientDetailView = false
     
     func set(_ ingredient: Ingredient?) {
-        self.name = ""
+        self.name = ingredient?.name ?? ""
         self.ingredient = ingredient
         self.isShowingIngredientDetailView = true
     }
