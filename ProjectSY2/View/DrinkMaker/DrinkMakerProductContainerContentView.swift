@@ -141,8 +141,11 @@ struct DrinkMakerProductContainerContentView: View {
     var review: some View {
         VStack {
             if let name = name {
-                Text(name)
-                    .padding()
+                HStack {
+                    Text(name)
+                    Spacer()
+                }
+                .padding()
             }
             if let productContainer = productContainer {
                 Text(productContainer.name ?? "Error item")
