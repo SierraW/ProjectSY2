@@ -14,6 +14,7 @@ struct ContainerListView: View {
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Container.name, ascending: true)],
                   animation: .default)
     var containers: FetchedResults<Container>
+    var showTitle = true
     var isDeleteDisabled = false
     var selected: ((Container) -> Void)?
     @State var isDeleteFailed = false
@@ -21,13 +22,15 @@ struct ContainerListView: View {
     var body: some View {
         ZStack {
             VStack {
-                HStack {
-                    Text("Containers")
-                        .font(.title)
-                    Spacer()
-                    if selected == nil {
-                        Button("Add") {
-                            containerData.set(nil)
+                if showTitle {
+                    HStack {
+                        Text("Containers")
+                            .font(.title)
+                        Spacer()
+                        if selected == nil {
+                            Button("Add") {
+                                containerData.set(nil)
+                            }
                         }
                     }
                 }

@@ -9,8 +9,6 @@ import SwiftUI
 
 struct OperationListView: View {
     @Environment(\.managedObjectContext) var viewContext
-    @EnvironmentObject var operationData: OperationData
-    
     @FetchRequest(sortDescriptors: [NSSortDescriptor(keyPath: \Operation.name, ascending: true)],
                   animation: .default)
     var operations: FetchedResults<Operation>
@@ -31,7 +29,7 @@ struct OperationListView: View {
                             .font(.title)
                         Spacer()
                         Button("Add") {
-                            operationData.set(nil)
+                            add()
                         }
                     }
                 }
@@ -40,11 +38,6 @@ struct OperationListView: View {
             }
             .padding()
         }
-        .sheet(isPresented: $operationData.isShowingContainerDetailView, content: {
-            OperationEditingView()
-                .environment(\.managedObjectContext, viewContext)
-                .environmentObject(operationData)
-        })
         .alert(isPresented: $isSaveFailed, content: {
             Alert(title: Text("Save failed."))
         })
@@ -61,30 +54,33 @@ struct OperationListView: View {
             List {
                 ForEach(operations) { oper in
                     if !editDisabled, let editingElement = editingElement, editingElement == oper {
-                        TextField("Operation name", text: $name) { _ in } onCommit: {
-                            oper.name = name
-                            set(nil)
-                            save()
+                        HStack {
+                            Image(systemName: "pencil")
+                            TextField("Operation name", text: $name) { _ in } onCommit: {
+                                oper.name = name
+                                set(nil)
+                                save()
+                            }
+                            .frame(width: 300, height: 40, alignment: .center)
                         }
                     } else {
                         HStack {
                             Text(oper.name ?? "Error item")
+                                .frame(width: 300, height: 40, alignment: .leading)
                             Spacer()
                             if !selectedOperations.isEmpty && selectedOperationsContains(oper) {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.green)
                             }
                         }
-                        .onLongPressGesture {
-                            if !editDisabled {
-                                set(oper)
-                            }
-                        }
                         .onTapGesture {
                             if let selected = selected {
                                 selected(oper)
-                            } else {
-                                operationData.set(oper)
+                            }
+                        }
+                        .onLongPressGesture {
+                            if !editDisabled {
+                                set(oper)
                             }
                         }
                     }
@@ -100,10 +96,31 @@ struct OperationListView: View {
     }
     
     private func set(_ operation: Operation?) {
-        if let operation = operation {
-            name = operation.name ?? ""
+        withAnimation {
+            if let operation = operation {
+                name = operation.name ?? ""
+            }
+            editingElement = operation
         }
-        editingElement = operation
+    }
+    
+    private func add() {
+        withAnimation {
+            let newOperation = Operation(context: viewContext)
+            newOperation.name = "NewOperation"
+            selectedOperations.append(newOperation)
+            set(newOperation)
+        }
+    }
+    
+    private func submit(_ operation: Operation) {
+        if name == "" {
+            set(nil)
+            return
+        }
+        operation.name = name
+        set(nil)
+        save()
     }
     
     private func deleteContainers(_ indexSet: IndexSet) {

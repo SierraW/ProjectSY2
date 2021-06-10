@@ -17,6 +17,8 @@ struct IngredientListView: View {
     var showTitle = true
     var editDisabled = false
     var selected: ((Ingredient) -> Void)?
+    @State var editingIngredient: Ingredient?
+    @State var name: String = ""
     
     var body: some View {
         ZStack {
@@ -53,26 +55,36 @@ struct IngredientListView: View {
         } else {
             List {
                 ForEach(ingredients) { item in
-                    if selected == nil {
-                        Button(item.name ?? "Error item") {
-                            ingredientData.set(item)
+                    if let ingredient = editingIngredient, ingredient == item {
+                        HStack {
+                            Image(systemName: "pencil")
+                            TextField("Name of the ingredient", text: $name) { _ in} onCommit: {
+                                submit(ingredient)
+                            }
+                            .frame(width: 300, height: 50, alignment: .center)
+                            .transition(.opacity)
                         }
                     } else {
                         HStack {
-                            Text(item.name ?? "Error item")
-                                .gesture(TapGesture().onEnded({ _ in
-                                    selected!(item)
-                                }))
                             Spacer()
-                            if !selectedIngredients.isEmpty && selectedIngredientsContains(item){
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.green)
-                            }
-                            Image(systemName: "pencil")
-                                .foregroundColor(.blue)
-                                .gesture(TapGesture().onEnded({ _ in
+                            Text(item.name ?? "Error item")
+                                .frame(width: 300, height: 40, alignment: .center)
+                            Spacer()
+                        }
+                        .transition(.opacity)
+                        .onTapGesture {
+                            withAnimation {
+                                if let selected = selected {
+                                    selected(item)
+                                } else {
                                     ingredientData.set(item)
-                                }))
+                                }
+                            }
+                        }
+                        .onLongPressGesture {
+                            withAnimation {
+                                set(item)
+                            }
                         }
                     }
                 }
@@ -80,6 +92,23 @@ struct IngredientListView: View {
                 .deleteDisabled(editDisabled)
             }
         }
+    }
+    
+    private func set(_ ingredient: Ingredient?) {
+        if !editDisabled {
+            editingIngredient = ingredient
+            name = ingredient?.name ?? ""
+        }
+    }
+    
+    private func submit(_ ingredient: Ingredient) {
+        if name == "" {
+            set(nil)
+            return
+        }
+        ingredient.name = name
+        set(nil)
+        save()
     }
 
     private func selectedIngredientsContains(_ ingredient: Ingredient) -> Bool {
@@ -91,6 +120,10 @@ struct IngredientListView: View {
             let ingredient = ingredients[index]
             viewContext.delete(ingredient)
         }
+        save()
+    }
+    
+    private func save() {
         do {
             try viewContext.save()
         } catch {

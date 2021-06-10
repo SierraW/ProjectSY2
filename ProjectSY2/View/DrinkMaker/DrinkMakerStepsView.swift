@@ -17,32 +17,57 @@ class DrinkMakerStepsData: ObservableObject {
             self.name = name
         }
         if let steps = history.steps as? Set<Step> {
-            self.steps = Array(steps)
+            self.steps = Array(steps).sorted(by: DrinkMakerComparator.compare(_:_:))
         }
     }
 }
 
 struct DrinkMakerStepsView: View {
     @EnvironmentObject var data: DrinkMakerStepsData
+    var showPadding = false
     var isShowingDetail = true
     
     var body: some View {
-        ZStack {
-            Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
+        HStack {
+            RoundedRectangle(cornerRadius: 25.0)
+                .fill(Color.blue)
+                .frame(width: 4)
+                .cornerRadius(15)
             VStack {
                 HStack {
-                    Text("from \(data.name)")
+                    if showPadding {
+                        Text("from \(data.name)")
+                            .bold()
+                            .padding(.horizontal, 7)
+                    } else {
+                        Text("from \(data.name)")
+                            .bold()
+                    }
                     Spacer()
                 }
                 if isShowingDetail {
                     Section {
                         ForEach(data.steps) { step in
-                            Text(step.name ?? "Error itme")
+                            HStack {
+                                if showPadding {
+                                    Text(step.name ?? "Error itme")
+                                        .padding(.vertical, 7)
+                                } else {
+                                    Text(step.name ?? "Error itme")
+                                }
+                                Spacer()
+                            }
                         }
                     }
                 }
             }
-            .padding()
         }
+        .padding(.horizontal, 7)
+    }
+}
+
+struct DrinkMakerStepsView_Previews: PreviewProvider {
+    static var previews: some View {
+        DrinkMakerStepsView()
     }
 }

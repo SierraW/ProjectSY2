@@ -60,7 +60,7 @@ struct SeriesListView: View {
             Spacer()
         }
         .sheet(item: $selectedVersion, content: { version in
-            DrinkMakerProductContainerContentView(from: version, showProdcutName: true, showsIsotopeMenu: true) { verison in
+            DrinkMakerProductContainerContentView(from: version, showProductName: true, showsIsotopeMenu: true) { verison in
                 selectedVersion = nil
                 Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { timer in
                     creativeModeAction?(version)

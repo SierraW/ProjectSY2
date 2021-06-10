@@ -54,7 +54,9 @@ class DrinkMakerContainerData: ObservableObject {
 
 struct DrinkMakerContainerView: View {
     @Environment(\.managedObjectContext) var viewContext
-    @EnvironmentObject var data: DrinkMakerContainerData
+    @EnvironmentObject var drinkMakerData: DrinkMakerData
+    @EnvironmentObject var drinkMakerContainerData: DrinkMakerContainerData
+    var showActionField = true
     
     var body: some View {
         VStack {
@@ -66,10 +68,12 @@ struct DrinkMakerContainerView: View {
                 Divider()
                 containerStepList
                     .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 200, maxHeight: 200, alignment: .center)
-                selectionMenu
-                    .frame(minWidth: 100, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 50, maxHeight: 50, alignment: .center)
-                mainInteractingSection
-                    .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 450, idealHeight: 450, maxHeight: .infinity, alignment: .center)
+                if showActionField {
+                    selectionMenu
+                        .frame(minWidth: 100, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 50, maxHeight: 50, alignment: .center)
+                    mainInteractingSection
+                        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 450, idealHeight: 450, maxHeight: .infinity, alignment: .center)
+                }
             }
             .padding()
         }
@@ -77,11 +81,11 @@ struct DrinkMakerContainerView: View {
     
     @ViewBuilder
     var containerStepList: some View {
-        if data.steps.isEmpty {
+        if drinkMakerContainerData.steps.isEmpty {
             Text("Empty Container")
         } else {
             List {
-                ForEach(data.steps) { step in
+                ForEach(drinkMakerContainerData.steps) { step in
                     Text(step.name ?? "Error item")
                 }
             }
@@ -92,9 +96,9 @@ struct DrinkMakerContainerView: View {
     var selectionMenu: some View {
         HStack {
             Spacer()
-            if data.ingredientNotEmpty {
+            if drinkMakerContainerData.ingredientNotEmpty {
                 Button(action: {
-                    data.setFocus()
+                    drinkMakerContainerData.setFocus()
                 }, label: {
                     Text("Ingredients")
                         .foregroundColor(.blue)
@@ -106,9 +110,9 @@ struct DrinkMakerContainerView: View {
             Spacer()
             Divider()
             Spacer()
-            if data.operationNotEmpty {
+            if drinkMakerContainerData.operationNotEmpty {
                 Button(action: {
-                    data.setFocus()
+                    drinkMakerContainerData.setFocus()
                 }, label: {
                     Text("Operations")
                         .foregroundColor(.blue)
@@ -124,11 +128,11 @@ struct DrinkMakerContainerView: View {
     @ViewBuilder
     var ingredientAction: some View {
         HStack {
-            if data.selectedIngredient == nil {
+            if drinkMakerContainerData.selectedIngredient == nil {
                 List {
-                    ForEach(data.ingredients) { ingredient in
+                    ForEach(drinkMakerContainerData.ingredients) { ingredient in
                         Button(ingredient.name ?? "Error item") {
-                            data.selectedIngredient = ingredient
+                            drinkMakerContainerData.selectedIngredient = ingredient
                         }
                     }
                 }
@@ -137,18 +141,18 @@ struct DrinkMakerContainerView: View {
                     HStack {
                         Image(systemName: "chevron.backward")
                             .gesture(TapGesture().onEnded({ _ in
-                                data.selectedIngredient = nil
+                                drinkMakerContainerData.selectedIngredient = nil
                             }))
-                        Text(data.selectedIngredient!.name ?? "Error item")
+                        Text(drinkMakerContainerData.selectedIngredient!.name ?? "Error item")
                         Spacer()
                     }
                     AmountAndUnitSelectionView() { unit, amount in
                         let step = Step(context: viewContext)
-                        step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(data.selectedIngredient?.name ?? "Error item")"
-                        data.add(step)
+                        step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(drinkMakerContainerData.selectedIngredient?.name ?? "Error item")"
+                        drinkMakerContainerData.add(step)
                     }
                         .environment(\.managedObjectContext, viewContext)
-                        .environmentObject(AmountAndUnitSelectionData(data.selectedIngredient!))
+                        .environmentObject(AmountAndUnitSelectionData(drinkMakerContainerData.selectedIngredient!))
                 }
             }
             
@@ -158,11 +162,11 @@ struct DrinkMakerContainerView: View {
     @ViewBuilder
     var operationAction: some View {
         List {
-            ForEach(data.operations) { operation in
+            ForEach(drinkMakerContainerData.operations) { operation in
                 Button(action: {
                     let step = Step(context: viewContext)
                     step.name = operation.name
-                    data.add(step)
+                    drinkMakerContainerData.add(step)
                 }, label: {
                     Text(operation.name ?? "Error item")
                 })
@@ -172,8 +176,8 @@ struct DrinkMakerContainerView: View {
     
     @ViewBuilder
     var mainInteractingSection: some View {
-        if data.ingredientNotEmpty || data.operationNotEmpty {
-            if data.isSelectedIngredient {
+        if drinkMakerContainerData.ingredientNotEmpty || drinkMakerContainerData.operationNotEmpty {
+            if drinkMakerContainerData.isSelectedIngredient {
                 ingredientAction
             } else {
                 operationAction
@@ -186,16 +190,13 @@ struct DrinkMakerContainerView: View {
             }
         }
     }
-    
-    func submit() {
-        
-    }
 }
 
 struct DrinkMakerContainerView_Previews: PreviewProvider {
     static var previews: some View {
         DrinkMakerContainerView()
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
+            .environmentObject(DrinkMakerData())
             .environmentObject(DrinkMakerContainerData(nil))
     }
 }

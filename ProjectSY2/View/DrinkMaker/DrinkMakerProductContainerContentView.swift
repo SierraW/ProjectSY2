@@ -10,6 +10,7 @@ import SwiftUI
 struct DrinkMakerProductContainerContentView: View {
     @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var data: DrinkMakerData
+    var showNotification = true
     var isLivePreview: Bool
     @State var isotopes: [Isotope] = []
     var name: String?
@@ -30,22 +31,23 @@ struct DrinkMakerProductContainerContentView: View {
         isLivePreview = true
     }
     
-    init(from version: Version, showProdcutName: Bool = false, showsIsotopeMenu: Bool = false, creativeModeAction: ((Version) -> Void)? = nil) {
+    init(from version: Version, showProductName: Bool = false, showsIsotopeMenu: Bool = false, creativeModeAction: ((Version) -> Void)? = nil) {
         isLivePreview = false
         self.creativeModeAction = creativeModeAction
         self.version = version
         if showsIsotopeMenu, let isotopeSet = version.isotopes as? Set<Isotope> {
             _isotopes = State(initialValue: Array(isotopeSet))
         }
-        name = showProdcutName ? "\(version.product?.name ?? "Error item") - \(version.name ?? "Error item")" : nil
+        name = showProductName ? "\(version.product?.name ?? "Error item") - \(version.name ?? "Error item")" : nil
         productContainer = version.productContainer
         if let steps = version.steps as? Set<Step> {
             self.steps = Array(steps).sorted(by: DrinkMakerComparator.compare(_:_:))
         }
     }
     
-    init(name: String?, productContainer: ProductContainer, steps: [Step]) {
+    init(name: String?, productContainer: ProductContainer, steps: [Step], showNotification: Bool = true) {
         isLivePreview = false
+        self.showNotification = showNotification
         self.name = name
         self.productContainer = productContainer
         self.steps = steps
@@ -70,18 +72,25 @@ struct DrinkMakerProductContainerContentView: View {
                 livePreview
             } else {
                 review
-                HStack(spacing: 0) {
-                    Text("Use")
-                    Text(" Creative Mode ")
-                        .onTapGesture {
-                            if let version = version, let creativeModeAction = creativeModeAction {
-                                withAnimation {
-                                    creativeModeAction(version)
+                    .padding()
+                if showNotification {
+                    HStack(spacing: 0) {
+                        Text("Use")
+                        if let creativeModeAction = creativeModeAction {
+                            Text(" Creative Mode ")
+                                .onTapGesture {
+                                    if let version = version {
+                                        withAnimation {
+                                            creativeModeAction(version)
+                                        }
+                                    }
                                 }
-                            }
+                                .foregroundColor(.blue)
+                        } else {
+                            Text(" Creative Mode ")
                         }
-                        .foregroundColor(creativeModeAction == nil ? .black : .blue)
-                    Text("to modify main answer")
+                        Text("to modify main answer")
+                    }
                 }
             }
             if !isotopes.isEmpty {
@@ -116,7 +125,11 @@ struct DrinkMakerProductContainerContentView: View {
                         LazyVStack {
                             ForEach(steps, id: \.identifier) { step in
                                 if let name = step.name {
-                                    Text(name)
+                                    HStack {
+                                        Text(name)
+                                            .padding(.horizontal, 7)
+                                        Spacer()
+                                    }
                                 } else if let history = step.childHistory{
                                     DrinkMakerStepsView(isShowingDetail: true)
                                         .environmentObject(DrinkMakerStepsData(history))
@@ -141,14 +154,16 @@ struct DrinkMakerProductContainerContentView: View {
     var review: some View {
         VStack {
             if let name = name {
-                HStack {
-                    Text(name)
-                    Spacer()
-                }
-                .padding()
+                Text(name)
+                    .padding(.horizontal, 7)
             }
             if let productContainer = productContainer {
-                Text(productContainer.name ?? "Error item")
+                HStack {
+                    Text(productContainer.name ?? "Error item")
+                        .bold()
+                    Spacer()
+                }
+                .padding(.horizontal, 7)
             }
             if steps.isEmpty {
                 Text("Empty")
@@ -158,9 +173,13 @@ struct DrinkMakerProductContainerContentView: View {
                         LazyVStack {
                             ForEach(steps, id: \.identifier) { step in
                                 if let name = step.name {
-                                    Text(name)
+                                    HStack {
+                                        Text(name)
+                                            .padding(.vertical, 7)
+                                        Spacer()
+                                    }
                                 } else if let history = step.childHistory{
-                                    DrinkMakerStepsView(isShowingDetail: true)
+                                    DrinkMakerStepsView(showPadding: true, isShowingDetail: true)
                                         .environmentObject(DrinkMakerStepsData(history))
                                 }
                             }
@@ -168,6 +187,7 @@ struct DrinkMakerProductContainerContentView: View {
                         }
                     }
                 }
+                Spacer()
             }
         }
     }

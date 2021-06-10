@@ -35,14 +35,14 @@ struct DrinkMakerComparisonView: View {
                         Text("Your Answer")
                             .bold()
                             .foregroundColor(.red)
-                        DrinkMakerProductContainerContentView(name: nil, productContainer: comparedProductContainer!, steps: comparedSteps)
+                        DrinkMakerProductContainerContentView(name: nil, productContainer: comparedProductContainer!, steps: comparedSteps, showNotification: false)
                     }
                     Divider()
                     VStack {
                         Text("Correct Answer")
                             .bold()
                             .foregroundColor(.green)
-                        DrinkMakerProductContainerContentView(name: nil, productContainer: originalProductContainer!, steps: originalSteps)
+                        DrinkMakerProductContainerContentView(name: nil, productContainer: originalProductContainer!, steps: originalSteps, showNotification: false)
                     }
                 }
                 Spacer()

@@ -14,7 +14,7 @@ class DrinkMakerData: ObservableObject {
     @Published var version: Version? = nil
     @Published var productContainer: ProductContainer? = nil
     @Published var steps: [Step] = []
-    @Published var histories: [History] = []
+    @Published var history: History? = nil
     @Published var mode: Mode = .Creator
     @Published var isLoading = false
     @Published var isSubmitted = false
@@ -45,7 +45,7 @@ class DrinkMakerData: ObservableObject {
         version = nil
         productContainer = nil
         steps = []
-        histories = []
+        history = nil
         mode = .Creator
         isLoading = false
         isSubmitted = false
@@ -67,10 +67,8 @@ class DrinkMakerData: ObservableObject {
         isShowingContainerEditingView = true
     }
     
-    func remove(_ history: History) {
-        if let index = histories.firstIndex(of: history) {
-            histories.remove(at: index)
-        }
+    func remove() {
+        history = nil
     }
 }
 
@@ -141,8 +139,9 @@ struct DrinkMakerView: View {
                             .font(.title3)
                         Spacer()
                     }
+                    .padding(.bottom, 7)
                 }
-                .padding()
+                .padding(.horizontal, 10)
                 productContainer
                     .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 320, maxHeight: .infinity, alignment: .topLeading)
                 HStack {
@@ -153,7 +152,8 @@ struct DrinkMakerView: View {
                         }))
                     Spacer()
                 }
-                .padding()
+                .padding(.vertical, 7)
+                .padding(.horizontal, 10)
                 if !isShowingIngredientSelectionView && !isShowingOperationSelectionView {
                     containList
                         .transition(.move(edge: .bottom))
@@ -176,22 +176,16 @@ struct DrinkMakerView: View {
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(ProductAndVersionData(nil))
             })
-            .sheet(isPresented: $drinkMakerData.isShowingContainerSelectionView, content: {
-                ContainerListView(isDeleteDisabled: true) { container in
-                    addContainer(container)
-                }
-                .environment(\.managedObjectContext, viewContext)
-                .environmentObject(ContainerData())
-            })
             .sheet(isPresented: $drinkMakerData.isShowingContainerEditingView, content: {
                 DrinkMakerContainerView()
                     .environment(\.managedObjectContext, viewContext)
+                    .environmentObject(drinkMakerData)
                     .environmentObject(drinkMakerData.drinkMakerContainerData!)
             })
             .sheet(isPresented: $isPresentProductContainerContentView, content: {
                 VStack {
                     Spacer()
-                    DrinkMakerProductContainerContentView(from: drinkMakerData.question!.version!, showProdcutName: true)
+                    DrinkMakerProductContainerContentView(from: drinkMakerData.question!.version!, showProductName: true)
                         .environmentObject(drinkMakerData)
                     Spacer()
                 }
@@ -219,7 +213,7 @@ struct DrinkMakerView: View {
                 }
                 DrinkMakerProductContainerContentView()
                     .environmentObject(drinkMakerData)
-                    .frame(width: 400, height: 230, alignment: .center)
+                    .frame(width: 380, height: 230, alignment: .center)
                 HStack {
                     Button(action: {
                         withAnimation {
@@ -232,9 +226,8 @@ struct DrinkMakerView: View {
                         HStack {
                             Text("Add Ingredient")
                             Image(systemName: "chevron.right.circle")
-                                                    .imageScale(.large)
-                                                    .rotationEffect(.degrees(isShowingIngredientSelectionView ? 90 : 0))
-                                                    .padding()
+                                .imageScale(.large)
+                                .rotationEffect(.degrees(isShowingIngredientSelectionView ? 90 : 0))
                         }
                         
                     })
@@ -250,9 +243,8 @@ struct DrinkMakerView: View {
                         HStack {
                             Text("Operations")
                             Image(systemName: "chevron.right.circle")
-                                                    .imageScale(.large)
-                                                    .rotationEffect(.degrees(isShowingOperationSelectionView ? 90 : 0))
-                                                    .padding()
+                                .imageScale(.large)
+                                .rotationEffect(.degrees(isShowingOperationSelectionView ? 90 : 0))
                         }
                         
                     })
@@ -296,7 +288,7 @@ struct DrinkMakerView: View {
                 }
                 .transition(.opacity)
             }
-            .padding()
+            .padding(.horizontal, 10)
         } else {
             if drinkMakerData.isShowingPCSelectionView {
                 ProductContainerListView(showTitle: false) { selectedContainer in
@@ -362,55 +354,59 @@ struct DrinkMakerView: View {
     
     @ViewBuilder
     var containList: some View {
-        if drinkMakerData.histories.isEmpty {
-            ZStack {
-                Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                VStack {
-                    Text("Click to select a container")
-                        .foregroundColor(.gray)
+        if let history = drinkMakerData.history {
+            VStack {
+                DrinkMakerContainerView(showActionField: false)
+                    .environment(\.managedObjectContext, viewContext)
+                    .environmentObject(drinkMakerData)
+                    .environmentObject(drinkMakerData.drinkMakerContainerData!)
+                    .gesture(TapGesture().onEnded({ _ in
+                        minimizedExtendedIOView()
+                        drinkMakerData.set(history)
+                    }))
+                HStack {
+                    Spacer()
+                    Text("Discard")
+                        .foregroundColor(.red)
+                        .gesture(TapGesture().onEnded({ _ in
+                            withAnimation {
+                                discard()
+                            }
+                        }))
+                        .padding(.trailing, 10)
+                    Text("Pour in")
+                        .foregroundColor(.blue)
+                        .gesture(TapGesture().onEnded({ _ in
+                            withAnimation {
+                                pour(history)
+                            }
+                        }))
+                        .padding(.trailing, 10)
                 }
             }
-            .gesture(TapGesture().onEnded({ _ in
-                minimizedExtendedIOView()
-                drinkMakerData.isShowingContainerSelectionView = true
-            }))
         } else {
-            ZStack {
-                Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                List {
-                    ForEach(drinkMakerData.histories) { history in
-                        VStack {
-                            VStack {
-                                Text(history.container?.name ?? "Error type")
-                                if let steps = history.steps as? Set<Step> {
-                                    List {
-                                        ForEach(Array(steps)) { step in
-                                            Text(step.name ?? "Error item")
-                                        }
-                                    }
-                                }
-                            }
-                            .gesture(TapGesture().onEnded({ _ in
-                                minimizedExtendedIOView()
-                                drinkMakerData.set(history)
-                            }))
-                            HStack {
-                                Spacer()
-                                Text("Discard")
-                                    .foregroundColor(.red)
-                                    .gesture(TapGesture().onEnded({ _ in
-                                        discard(history)
-                                    }))
-                                    .padding(.trailing, 10)
-                                Text("Pour to Product Container")
-                                    .foregroundColor(.blue)
-                                    .gesture(TapGesture().onEnded({ _ in
-                                        pour(history)
-                                    }))
-                            }
-                        }
+            if drinkMakerData.isShowingContainerSelectionView {
+                ContainerListView(showTitle: false, isDeleteDisabled: true) { container in
+                    withAnimation {
+                        addContainer(container)
                     }
                 }
+                .environment(\.managedObjectContext, viewContext)
+                .environmentObject(ContainerData())
+                .padding()
+                .background(Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
+            } else {
+                ZStack {
+                    Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
+                    VStack {
+                        Text("Click to select a container")
+                            .foregroundColor(.gray)
+                    }
+                }
+                .gesture(TapGesture().onEnded({ _ in
+                    minimizedExtendedIOView()
+                    drinkMakerData.isShowingContainerSelectionView = true
+                }))
             }
         }
     }
@@ -430,7 +426,7 @@ struct DrinkMakerView: View {
         let history = History(context: viewContext)
         history.identifier = drinkMakerData.generateId()
         history.container = container
-        drinkMakerData.histories.append(history)
+        drinkMakerData.history = history
         drinkMakerData.isShowingContainerSelectionView = false
     }
     
@@ -448,10 +444,8 @@ struct DrinkMakerView: View {
         drinkMakerData.steps.append(step)
     }
     
-    private func discard(_ historyToBeRemove: History) {
-        drinkMakerData.histories.removeAll { history in
-            history == historyToBeRemove
-        }
+    private func discard() {
+        drinkMakerData.history = nil
     }
     
     private func pour(_ history: History) {
@@ -460,8 +454,7 @@ struct DrinkMakerView: View {
             step.identifier = history.identifier
             step.childHistory = history
             drinkMakerData.steps.append(step)
-            addContainer(history.container!)
-            drinkMakerData.remove(history)
+            drinkMakerData.remove()
         } else {
             sendWarning(with: "Product container is missing")
         }
