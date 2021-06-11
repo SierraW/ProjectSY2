@@ -20,7 +20,7 @@ struct DrinkMakerLoadingView: View {
                     controller.practiceMode(version: version)
                 }
                 .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                .environmentObject(ProductAndVersionData(nil))
+                .environmentObject(ProductAndVersionData())
                 Button(action: {
                     landingViewData.isShowingMainMenu.toggle()
                 }, label: {

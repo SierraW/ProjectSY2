@@ -204,6 +204,6 @@ struct SeriesListView_Previews: PreviewProvider {
     static var previews: some View {
         SeriesListView(isPresented: .constant(true))
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-            .environmentObject(ProductAndVersionData(nil))
+            .environmentObject(ProductAndVersionData())
     }
 }

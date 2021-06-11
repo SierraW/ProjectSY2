@@ -20,15 +20,9 @@ class ProductAndVersionData: ObservableObject {
     @Published var isShowingPVSelectionView = false
     @Published var warningProductIsNotSelected = false
     
-    init(_ series: Series?) {
-        self.series = series
+    init() {
+        self.series = nil
         resetEverythingExceptSeries()
-        if let ps = series?.products {
-            products = Array(ps as! Set<Product>)
-        }
-        if products.count > 0 {
-            set(products[0])
-        }
     }
     
     private func resetEverythingExceptSeries() {
@@ -47,8 +41,11 @@ class ProductAndVersionData: ObservableObject {
     func set(_ s: Series) {
         resetEverythingExceptSeries()
         self.series = s
-        if let products = s.products {
-            self.products = Array(products as! Set<Product>)
+        if let ps = series?.products as? Set<Product> {
+            products = ps.sorted(by: DrinkMakerComparator.compare(_:_:))
+        }
+        if products.count > 0 {
+            set(products[0])
         }
         isShowingPVSelectionView = true
     }
@@ -56,8 +53,10 @@ class ProductAndVersionData: ObservableObject {
     func set(_ pd: Product?) {
         selectedProduct = pd
         resetEditingData()
-        if let pd = pd, let versions = pd.versions {
-            self.versions = Array(versions as! Set<Version>)
+        if let pd = pd, let versionSet = pd.versions as? Set<Version> {
+            self.versions = versionSet.sorted(by: DrinkMakerComparator.compare(_:_:))
+        } else {
+            self.versions = []
         }
     }
     
@@ -167,7 +166,10 @@ struct ProductAndVersionSelectionView: View {
                 ForEach(data.products) { product in
                     if product == data.isEditingProduct {
                         HStack {
-                            TextField("Product Name", text: $data.productName)
+                            Image(systemName: "pencil")
+                            TextField("Name of the product", text: $data.productName) { _ in} onCommit: {
+                                saveProduct()
+                            }
                             Spacer()
                             Image(systemName: "pencil")
                                 .foregroundColor(.green)
@@ -184,8 +186,9 @@ struct ProductAndVersionSelectionView: View {
                         HStack {
                             HStack {
                                 Spacer()
-                                Text("> \(product.name!)")
+                                Text(product.name ?? "Error item")
                                     .bold()
+                                Image(systemName: "checkmark")
                                 Spacer()
                             }
                             .gesture(TapGesture().onEnded({ _ in
@@ -200,17 +203,13 @@ struct ProductAndVersionSelectionView: View {
                                 Text(product.name!)
                                 Spacer()
                             }
-                                .gesture(
-                                    TapGesture()
-                                        .onEnded { _ in
-                                            data.set(product)
-                                        }
-                                )
-                            Image(systemName: "pencil")
-                                .foregroundColor(.blue)
-                                .gesture(TapGesture().onEnded({ _ in
-                                    data.setFocusOnProduct(product)
-                                }))
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                data.set(product)
+                            }
+                            .onLongPressGesture {
+                                data.setFocusOnProduct(product)
+                            }
                         }
                     }
                 }
@@ -240,7 +239,10 @@ struct ProductAndVersionSelectionView: View {
                 ForEach(data.versions) { version in
                     if version == data.isEditingVersion {
                         HStack {
-                            TextField("Version Name", text: $data.versionName)
+                            Image(systemName: "pencil")
+                            TextField("Name of the version", text: $data.versionName) { _ in} onCommit: {
+                                saveVersion()
+                            }
                             Spacer()
                             Image(systemName: "pencil")
                                 .foregroundColor(.green)
@@ -260,16 +262,17 @@ struct ProductAndVersionSelectionView: View {
                                 Text(version.name!)
                                 Spacer()
                             }
-                            .gesture(TapGesture().onEnded({ _ in
-                                if selected != nil {
-                                    selected!(data.selectedProduct!, version)
-                                }
-                            }))
-                            Image(systemName: "pencil")
-                                .foregroundColor(.blue)
-                                .gesture(TapGesture().onEnded({ _ in
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if let selected = selected {
+                                    selected(data.selectedProduct!, version)
+                                } else {
                                     data.setFocusOnVersion(version)
-                                }))
+                                }
+                            }
+                            .onLongPressGesture {
+                                data.setFocusOnVersion(version)
+                            }
                         }
                     }
                 }
@@ -287,7 +290,7 @@ struct ProductAndVersionSelectionView: View {
     
     private func addProduct() {
         let product = Product(context: viewContext)
-        product.name = "New Product"
+        product.name = "NewProduct"
         data.addProduct(product)
     }
     
@@ -304,7 +307,7 @@ struct ProductAndVersionSelectionView: View {
     
     private func addVersion() {
         let version = Version(context: viewContext)
-        version.name = "New Version"
+        version.name = "NewVersion"
         data.addVersion(version)
     }
     

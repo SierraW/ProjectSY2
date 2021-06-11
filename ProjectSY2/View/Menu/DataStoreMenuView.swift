@@ -59,7 +59,7 @@ struct DataStoreMenuView: View {
                         landingViewData.isShowingMainMenu = false
                     })
                         .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
-                        .environmentObject(ProductAndVersionData(nil)),
+                        .environmentObject(ProductAndVersionData()),
                     label: {
                         SubmitButtonView(title: "Version", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
                     })

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20E241" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="18154" systemVersion="20F71" minimumToolsVersion="Automatic" sourceLanguage="Swift" userDefinedModelVersionIdentifier="">
     <entity name="Container" representedClassName="Container" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
         <relationship name="history" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="History" inverseName="container" inverseEntity="History"/>
@@ -22,20 +22,19 @@
     </entity>
     <entity name="Ingredient" representedClassName="Ingredient" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="amounts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="IngredientAmount" inverseName="ingredient" inverseEntity="IngredientAmount"/>
         <relationship name="containers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Container" inverseName="ingredients" inverseEntity="Container"/>
         <relationship name="operations" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Operation" inverseName="ingredients" inverseEntity="Operation"/>
         <relationship name="productContainers" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="ProductContainer" inverseName="ingredients" inverseEntity="ProductContainer"/>
-        <relationship name="units" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="IngredientUnit" inverseName="container" inverseEntity="IngredientUnit"/>
+        <relationship name="units" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="IngredientUnit" inverseName="ingredient" inverseEntity="IngredientUnit"/>
+    </entity>
+    <entity name="IngredientAmount" representedClassName="IngredientAmount" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <relationship name="ingredient" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="amounts" inverseEntity="Ingredient"/>
     </entity>
     <entity name="IngredientUnit" representedClassName="IngredientUnit" syncable="YES" codeGenerationType="class">
         <attribute name="name" optional="YES" attributeType="String"/>
-        <relationship name="amounts" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="IngredientUnitAmount" inverseName="unit" inverseEntity="IngredientUnitAmount"/>
-        <relationship name="container" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="units" inverseEntity="Ingredient"/>
-    </entity>
-    <entity name="IngredientUnitAmount" representedClassName="IngredientUnitAmount" syncable="YES" codeGenerationType="class">
-        <attribute name="name" optional="YES" attributeType="String"/>
-        <attribute name="priority" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
-        <relationship name="unit" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="IngredientUnit" inverseName="amounts" inverseEntity="IngredientUnit"/>
+        <relationship name="ingredient" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Ingredient" inverseName="units" inverseEntity="Ingredient"/>
     </entity>
     <entity name="Isotope" representedClassName="Isotope" syncable="YES" codeGenerationType="class">
         <attribute name="identifier" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES" customClassName="Hasher"/>
@@ -101,9 +100,10 @@
         <element name="Container" positionX="-36" positionY="27" width="128" height="89"/>
         <element name="Exam" positionX="-18" positionY="90" width="128" height="104"/>
         <element name="History" positionX="-36" positionY="81" width="128" height="104"/>
-        <element name="Ingredient" positionX="-63" positionY="-18" width="128" height="104"/>
-        <element name="IngredientUnit" positionX="-27" positionY="90" width="128" height="74"/>
-        <element name="IngredientUnitAmount" positionX="-36" positionY="81" width="128" height="74"/>
+        <element name="Ingredient" positionX="-63" positionY="-18" width="128" height="119"/>
+        <element name="IngredientUnit" positionX="-27" positionY="90" width="128" height="59"/>
+        <element name="IngredientAmount" positionX="-36" positionY="81" width="128" height="59"/>
+        <element name="Isotope" positionX="-27" positionY="99" width="128" height="104"/>
         <element name="Item" positionX="-27" positionY="81" width="128" height="44"/>
         <element name="Operation" positionX="-18" positionY="90" width="128" height="89"/>
         <element name="Product" positionX="-45" positionY="63" width="128" height="74"/>
@@ -112,6 +112,5 @@
         <element name="Series" positionX="-36" positionY="72" width="128" height="59"/>
         <element name="Step" positionX="-54" positionY="9" width="128" height="134"/>
         <element name="Version" positionX="-27" positionY="81" width="128" height="134"/>
-        <element name="Isotope" positionX="-27" positionY="99" width="128" height="104"/>
     </elements>
 </model>

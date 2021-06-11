@@ -9,30 +9,31 @@ import SwiftUI
 
 struct IngredientAmountUnitSelectionView: View {
     var ingredients: [Ingredient]
-    var selected: (Ingredient, IngredientUnit, IngredientUnitAmount) -> Void
+    var selected: (Ingredient, IngredientUnit, IngredientAmount) -> Void
     @State var selectedIngredient: Ingredient?
     @State var focusOnIngredients = false
     
     var body: some View {
         HStack {
             if !focusOnIngredients, let selectedIngredient = selectedIngredient {
-                Button(action: {
+                HStack {
+                    Text(selectedIngredient.name ?? "Error item")
+                        .font(.footnote)
+                        .foregroundColor(.gray)
+                        .frame(width: 200, alignment: .trailing)
+                    Image(systemName: "arrow.up.circle")
+                        .foregroundColor(.gray)
+                }
+                .rotationEffect(.degrees(270))
+                .frame(width: 20, height: 250, alignment: .center)
+                .contentShape(Rectangle())
+                .onTapGesture {
                     withAnimation {
                         focusOnIngredients = true
                     }
-                }, label: {
-                    HStack {
-                        Text(selectedIngredient.name ?? "Error item")
-                            .fontWeight(.heavy)
-                            .foregroundColor(.gray)
-                        Image(systemName: "arrow.up.circle")
-                            .foregroundColor(.gray)
-                    }
-                    .rotationEffect(.degrees(270))
-                    .frame(width: 200, height: 20, alignment: .center)
-                })
-                .frame(width: 20, height: 100, alignment: .center)
-                AmountAndUnitSelectionView { unit, amount in
+                }
+                AmountAndUnitSelectionView(allowEdit: false) { unit, amount in
+                    focusOnIngredients = true
                     selected(selectedIngredient, unit, amount)
                 }
                 .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
@@ -54,22 +55,22 @@ struct IngredientAmountUnitSelectionView: View {
                     }
                 }
                 if let _ = selectedIngredient {
-                    Button(action: {
+                    HStack {
+                        Image(systemName: "arrow.up.circle")
+                            .foregroundColor(.gray)
+                        Text("Amount & Unit")
+                            .font(.footnote)
+                            .foregroundColor(.gray)
+                            .frame(width: 200, alignment: .leading)
+                    }
+                    .rotationEffect(.degrees(90))
+                    .frame(width: 20, height: 250, alignment: .center)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
                         withAnimation {
                             focusOnIngredients = false
                         }
-                    }, label: {
-                        HStack {
-                            Image(systemName: "arrow.up.circle")
-                                .foregroundColor(.gray)
-                            Text("Amount & Unit")
-                                .fontWeight(.heavy)
-                                .foregroundColor(.gray)
-                        }
-                        .rotationEffect(.degrees(90))
-                        .frame(width: 200, height: 20, alignment: .center)
-                    })
-                    .frame(width: 20, height: 200, alignment: .center)
+                    }
                 }
             }
         }

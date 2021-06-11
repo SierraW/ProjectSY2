@@ -9,8 +9,6 @@ import SwiftUI
 
 struct DrinkMakerProductContainerContentView: View {
     @Environment(\.managedObjectContext) var viewContext
-    @EnvironmentObject var data: DrinkMakerData
-    var isLivePreview: Bool
     @State var isotopes: [Isotope] = []
     var name: String?
     var productContainer: ProductContainer?
@@ -27,12 +25,7 @@ struct DrinkMakerProductContainerContentView: View {
         return dateFormatter
     }
     
-    init() {
-        isLivePreview = true
-    }
-    
     init(from version: Version, showProductName: Bool = false, showsIsotopeMenu: Bool = false, practiceModeAction: ((Version) -> Void)? = nil, creativeModeAction: ((Version) -> Void)? = nil) {
-        isLivePreview = false
         self.practiceModeAction = practiceModeAction
         self.creativeModeAction = creativeModeAction
         self.version = version
@@ -46,15 +39,13 @@ struct DrinkMakerProductContainerContentView: View {
         }
     }
     
-    init(name: String?, productContainer: ProductContainer, steps unsortedSteps: Set<Step>) {
-        isLivePreview = false
+    init(name: String?, productContainer: ProductContainer, steps unsortedStepSet: Set<Step>) {
         self.name = name
         self.productContainer = productContainer
-        self.steps = steps.sorted(by: DrinkMakerComparator.compare(_:_:))
+        self.steps = unsortedStepSet.sorted(by: DrinkMakerComparator.compare(_:_:))
     }
     
     init(from isotope: Isotope) {
-        isLivePreview = false
         if let timestamp = isotope.timestamp {
             name = dateFormatter.string(from: timestamp)
         }
@@ -68,40 +59,36 @@ struct DrinkMakerProductContainerContentView: View {
     
     var body: some View {
         VStack {
-            if isLivePreview {
-                livePreview
-            } else {
-                review
-                    .padding()
-                VStack {
-                    if let practiceModeAction = practiceModeAction {
-                        Text("Pratice Now")
+            review
+                .padding()
+            VStack {
+                if let practiceModeAction = practiceModeAction {
+                    Text("Pratice Now")
+                        .onTapGesture {
+                            if let version = version {
+                                withAnimation {
+                                    practiceModeAction(version)
+                                }
+                            }
+                        }
+                        .foregroundColor(.blue)
+                }
+                if let creativeModeAction = creativeModeAction {
+                    HStack(spacing: 0) {
+                        Text("Or use")
+                        Text(" Creative Mode ")
                             .onTapGesture {
                                 if let version = version {
                                     withAnimation {
-                                        practiceModeAction(version)
+                                        creativeModeAction(version)
                                     }
                                 }
                             }
                             .foregroundColor(.blue)
+                        Text("to modify the answer")
                     }
-                    if let creativeModeAction = creativeModeAction {
-                        HStack(spacing: 0) {
-                            Text("Or use")
-                            Text(" Creative Mode ")
-                                .onTapGesture {
-                                    if let version = version {
-                                        withAnimation {
-                                            creativeModeAction(version)
-                                        }
-                                    }
-                                }
-                                .foregroundColor(.blue)
-                            Text("to modify the answer")
-                        }
-                    }
-                    
                 }
+                
             }
             if !isotopes.isEmpty {
                 Divider()
@@ -127,40 +114,6 @@ struct DrinkMakerProductContainerContentView: View {
     }
     
     @ViewBuilder
-    var livePreview: some View {
-        VStack {
-            if let steps = data.steps {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical) {
-                        LazyVStack {
-                            ForEach(steps, id: \.identifier) { step in
-                                if let name = step.name {
-                                    HStack {
-                                        Text(name)
-                                            .padding(.horizontal, 7)
-                                        Spacer()
-                                    }
-                                } else if let history = step.childHistory{
-                                    DrinkMakerStepsView()
-                                        .environmentObject(DrinkMakerStepsData(history))
-                                }
-                            }
-                            Divider().id(bottomId)
-                        }
-                        .onChange(of: steps.count, perform: { _ in
-                            withAnimation {
-                                proxy.scrollTo(bottomId)
-                            }
-                        })
-                    }
-                }
-            } else {
-                Text("Empty")
-            }
-        }
-    }
-    
-    @ViewBuilder
     var review: some View {
         VStack {
             if let name = name {
@@ -173,28 +126,25 @@ struct DrinkMakerProductContainerContentView: View {
                         .bold()
                     Spacer()
                 }
-                .padding(.horizontal, 7)
             }
             if steps.isEmpty {
                 Text("Empty")
             } else {
-                ScrollViewReader { proxy in
-                    ScrollView(.vertical) {
-                        LazyVStack {
-                            ForEach(steps, id: \.identifier) { step in
-                                if let name = step.name {
-                                    HStack {
-                                        Text(name)
-                                            .padding(.vertical, 7)
-                                        Spacer()
-                                    }
-                                } else if let history = step.childHistory{
-                                    DrinkMakerStepsView(showPadding: true)
-                                        .environmentObject(DrinkMakerStepsData(history))
+                ScrollView(.vertical) {
+                    LazyVStack {
+                        ForEach(steps) { step in
+                            if let name = step.name {
+                                HStack {
+                                    Text(name)
+                                        .padding(.vertical, 7)
+                                    Spacer()
                                 }
+                            } else if let history = step.childHistory{
+                                DrinkMakerStepsView(showPadding: true)
+                                    .environmentObject(DrinkMakerStepsData(history))
                             }
-                            Divider()
                         }
+                        Divider()
                     }
                 }
                 Spacer()

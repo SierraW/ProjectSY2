@@ -222,7 +222,7 @@ struct DrinkMakerView: View {
                     drinkMakerData.version = version
                 }
                 .environment(\.managedObjectContext, viewContext)
-                .environmentObject(ProductAndVersionData(nil))
+                .environmentObject(ProductAndVersionData())
             })
             .sheet(isPresented: $drinkMakerData.isShowingContainerEditingView, content: {
                 DrinkMakerContainerView()
@@ -258,8 +258,7 @@ struct DrinkMakerView: View {
                             .foregroundColor(.red)
                     })
                 }
-                DrinkMakerProductContainerContentView()
-                    .environmentObject(drinkMakerData)
+                DrinkMakerContainerContentLivePreviewView(steps: $drinkMakerData.steps)
                     .frame(width: 380, height: 230, alignment: .center)
                 HStack {
                     Button(action: {
@@ -328,7 +327,9 @@ struct DrinkMakerView: View {
         } else {
             if drinkMakerData.isShowingPCSelectionView {
                 ProductContainerListView(showTitle: false) { selectedContainer in
-                    drinkMakerData.set(selectedContainer)
+                    withAnimation {
+                        drinkMakerData.set(selectedContainer)
+                    }
                 }
                 .border(Color.gray, width: 1)
                 .padding()
@@ -423,6 +424,8 @@ struct DrinkMakerView: View {
                 ContainerListView(showTitle: false, isDeleteDisabled: true) { container in
                     withAnimation {
                         drinkMakerData.set(container, with: History(context: viewContext))
+                        minimizedExtendedIOView()
+                        drinkMakerData.isShowingContainerEditingView = true
                     }
                 }
                 .environment(\.managedObjectContext, viewContext)
@@ -459,10 +462,10 @@ struct DrinkMakerView: View {
         }
     }
     
-    private func addToProductContainer(_ ingredient: Ingredient, unit: IngredientUnit, amount: IngredientUnitAmount) {
+    private func addToProductContainer(_ ingredient: Ingredient, unit: IngredientUnit, amount: IngredientAmount) {
         let step = Step(context: viewContext)
         step.identifier = drinkMakerData.generateId()
-        step.name = "\(ingredient.name ?? "Error item") \(amount.name ?? "Error item")\(unit.name ?? "Error item")"
+        step.name = DrinkMakerFormatter.format(ingredient, unit, amount)
         drinkMakerData.steps.append(step)
     }
     
@@ -480,7 +483,7 @@ struct DrinkMakerView: View {
     private func pour(_ history: History) {
         if let _ = drinkMakerData.productContainer {
             let step = Step(context: viewContext)
-            step.identifier = history.identifier
+            step.identifier = drinkMakerData.generateId()
             step.childHistory = history
             drinkMakerData.steps.append(step)
             drinkMakerData.remove()
@@ -538,7 +541,6 @@ struct DrinkMakerView: View {
         switch drinkMakerData.mode {
         case .Exam:
             if !controller.nextQuestion() {
-                
                 drinkMakerData.isSubmitted = true
             } else {
                 controller.startOver()

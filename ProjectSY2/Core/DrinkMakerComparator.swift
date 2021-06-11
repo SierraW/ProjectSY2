@@ -20,6 +20,22 @@ class DrinkMakerComparator {
         return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
     }
     
+    static func compare(_ lhs: IngredientUnit, _ rhs: IngredientUnit) -> Bool {
+        return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
+    }
+    
+    static func compare(_ lhs: IngredientAmount, _ rhs: IngredientAmount) -> Bool {
+        return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
+    }
+    
+    static func compare(_ lhs: Product, _ rhs: Product) -> Bool {
+        return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
+    }
+    
+    static func compare(_ lhs: Version, _ rhs: Version) -> Bool {
+        return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
+    }
+    
     static func compare(_ lhs: Set<Step>, _ rhs: Set<Step>) -> Bool {
         let lhsArr = lhs.sorted(by: compare(_:_:))
         let rhsArr = rhs.sorted(by: compare(_:_:))
