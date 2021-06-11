@@ -14,7 +14,15 @@ class DrinkMakerData: ObservableObject {
     @Published var version: Version? = nil
     @Published var productContainer: ProductContainer? = nil
     @Published var steps: [Step] = []
+    @Published var ingredients: [Ingredient] = []
+    @Published var operations: [Operation] = []
+    // container
     @Published var history: History? = nil
+    @Published var historyContainer: Container? = nil
+    @Published var historySteps: [Step] = []
+    @Published var historyIngredients: [Ingredient] = []
+    @Published var historyOperations: [Operation] = []
+    
     @Published var mode: Mode = .Creator
     @Published var isLoading = false
     @Published var isSubmitted = false
@@ -23,7 +31,6 @@ class DrinkMakerData: ObservableObject {
     @Published var isShowingContainerSelectionView = false
     @Published var isShowingContainerEditingView = false
     @Published var isShowingVersionSelectionView = false
-    var drinkMakerContainerData: DrinkMakerContainerData? = nil
     var identifierGenerator = 0
     var productName: String {
         if let version = version, let product = version.product {
@@ -45,7 +52,15 @@ class DrinkMakerData: ObservableObject {
         version = nil
         productContainer = nil
         steps = []
+        ingredients = []
+        operations = []
+        
         history = nil
+        historyContainer = nil
+        historySteps = []
+        historyIngredients = []
+        historyOperations = []
+        
         mode = .Creator
         isLoading = false
         isSubmitted = false
@@ -53,7 +68,6 @@ class DrinkMakerData: ObservableObject {
         isShowingPCSelectionView = false
         isShowingContainerSelectionView = false
         isShowingContainerEditingView = false
-        drinkMakerContainerData = nil
         identifierGenerator = 0
     }
     
@@ -62,9 +76,43 @@ class DrinkMakerData: ObservableObject {
         return Int32(identifierGenerator)
     }
     
-    func set(_ history: History) {
-        drinkMakerContainerData = DrinkMakerContainerData(history)
-        isShowingContainerEditingView = true
+    func set(_ productContainer: ProductContainer) {
+        withAnimation {
+            self.productContainer = productContainer
+            self.steps = []
+            if let ingredientSet = productContainer.ingredients as? Set<Ingredient> {
+                self.ingredients = ingredientSet.sorted(by: DrinkMakerComparator.compare(_:_:))
+            } else {
+                self.ingredients = []
+            }
+            if let operationSet = productContainer.operations as? Set<Operation> {
+                self.operations = operationSet.sorted(by: DrinkMakerComparator.compare(_:_:))
+            } else {
+                self.operations = []
+            }
+            self.isShowingPCSelectionView = false
+        }
+    }
+    
+    func set(_ container: Container, with history: History) {
+        history.identifier = generateId()
+        history.container = container
+        self.history = history
+        if let container = history.container {
+            self.historySteps = []
+            self.historyContainer = container
+            if let ingredients = container.ingredients as? Set<Ingredient> {
+                self.historyIngredients = ingredients.sorted(by: DrinkMakerComparator.compare(_:_:))
+            } else {
+                self.historyIngredients = []
+            }
+            if let operations = container.operations as? Set<Operation> {
+                self.historyOperations = operations.sorted(by: DrinkMakerComparator.compare(_:_:))
+            } else {
+                self.historyOperations = []
+            }
+        }
+        isShowingContainerSelectionView = false
     }
     
     func remove() {
@@ -155,9 +203,9 @@ struct DrinkMakerView: View {
                 .padding(.vertical, 7)
                 .padding(.horizontal, 10)
                 if !isShowingIngredientSelectionView && !isShowingOperationSelectionView {
-                    containList
-                        .transition(.move(edge: .bottom))
-                        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: 230, alignment: .topLeading)
+                    containerView
+                        .transition(.opacity)
+                        .frame(minWidth: 0, idealWidth: 100, maxWidth: .infinity, minHeight: 50, idealHeight: 70, maxHeight: .infinity, alignment: .topLeading)
                 }
                 Button(action: {
                     submit()
@@ -180,7 +228,6 @@ struct DrinkMakerView: View {
                 DrinkMakerContainerView()
                     .environment(\.managedObjectContext, viewContext)
                     .environmentObject(drinkMakerData)
-                    .environmentObject(drinkMakerData.drinkMakerContainerData!)
             })
             .sheet(isPresented: $isPresentProductContainerContentView, content: {
                 VStack {
@@ -251,36 +298,25 @@ struct DrinkMakerView: View {
                 }
                 Section {
                     if isShowingIngredientSelectionView {
-                        if let productContainer = drinkMakerData.productContainer, let ingredientSet = productContainer.ingredients as? Set<Ingredient> {
-                            IngredientAmountUnitSelectionView(ingredients: Array(ingredientSet)) { ingredient, unit, amount in
-                                withAnimation {
-                                    addToProductContainer(ingredient, unit: unit, amount: amount)
-                                }
+                        IngredientAmountUnitSelectionView(ingredients: drinkMakerData.ingredients) { ingredient, unit, amount in
+                            withAnimation {
+                                addToProductContainer(ingredient, unit: unit, amount: amount)
                             }
                         }
-                        
                     }
                     if isShowingOperationSelectionView {
-                        if let productContainer = drinkMakerData.productContainer, let operationSet = productContainer.operations as? Set<Operation> {
-                            let operations = Array(operationSet).sorted { lhs, rhs in
-                                if let lhsName = lhs.name, let rhsName = rhs.name {
-                                    return lhsName.compare(rhsName) == .orderedDescending
-                                }
-                                return false
-                            }
-                            if operations.isEmpty {
-                                Text("Empty")
-                            } else {
-                                List {
-                                    ForEach(operations) { operation in
-                                        Button(action: {
-                                            withAnimation {
-                                                addToProductContainer(operation)
-                                            }
-                                        }, label: {
-                                            Text(operation.name ?? "Error item")
-                                        })
-                                    }
+                        if drinkMakerData.operations.isEmpty {
+                            Text("Empty")
+                        } else {
+                            List {
+                                ForEach(drinkMakerData.operations) { operation in
+                                    Button(action: {
+                                        withAnimation {
+                                            addToProductContainer(operation)
+                                        }
+                                    }, label: {
+                                        Text(operation.name ?? "Error item")
+                                    })
                                 }
                             }
                         }
@@ -292,24 +328,23 @@ struct DrinkMakerView: View {
         } else {
             if drinkMakerData.isShowingPCSelectionView {
                 ProductContainerListView(showTitle: false) { selectedContainer in
-                    withAnimation {
-                        drinkMakerData.productContainer = selectedContainer
-                        drinkMakerData.steps = []
-                        drinkMakerData.isShowingPCSelectionView = false
-                    }
+                    drinkMakerData.set(selectedContainer)
                 }
+                .border(Color.gray, width: 1)
                 .padding()
-                .background(Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(ProductContainerAdditionData(nil))
             } else {
-                ZStack {
-                    Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                    VStack {
-                        Text("Click to select a product container")
-                            .foregroundColor(.gray)
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text("Click here to select a product container")
+                        Spacer()
                     }
+                    Spacer()
                 }
+                .contentShape(Rectangle())
                 .gesture(TapGesture().onEnded({ _ in
                     withAnimation {
                         drinkMakerData.isShowingPCSelectionView = true
@@ -353,16 +388,15 @@ struct DrinkMakerView: View {
     }
     
     @ViewBuilder
-    var containList: some View {
+    var containerView: some View {
         if let history = drinkMakerData.history {
             VStack {
                 DrinkMakerContainerView(showActionField: false)
                     .environment(\.managedObjectContext, viewContext)
                     .environmentObject(drinkMakerData)
-                    .environmentObject(drinkMakerData.drinkMakerContainerData!)
                     .gesture(TapGesture().onEnded({ _ in
                         minimizedExtendedIOView()
-                        drinkMakerData.set(history)
+                        drinkMakerData.isShowingContainerEditingView = true
                     }))
                 HStack {
                     Spacer()
@@ -388,21 +422,24 @@ struct DrinkMakerView: View {
             if drinkMakerData.isShowingContainerSelectionView {
                 ContainerListView(showTitle: false, isDeleteDisabled: true) { container in
                     withAnimation {
-                        addContainer(container)
+                        drinkMakerData.set(container, with: History(context: viewContext))
                     }
                 }
                 .environment(\.managedObjectContext, viewContext)
                 .environmentObject(ContainerData())
+                .border(Color.gray, width: 1)
                 .padding()
-                .background(Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
             } else {
-                ZStack {
-                    Color.init(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1))
-                    VStack {
-                        Text("Click to select a container")
-                            .foregroundColor(.gray)
+                VStack {
+                    Spacer()
+                    HStack {
+                        Spacer()
+                        Text("Click here to select a container")
+                        Spacer()
                     }
+                    Spacer()
                 }
+                .contentShape(Rectangle())
                 .gesture(TapGesture().onEnded({ _ in
                     minimizedExtendedIOView()
                     drinkMakerData.isShowingContainerSelectionView = true
@@ -422,18 +459,10 @@ struct DrinkMakerView: View {
         }
     }
     
-    private func addContainer(_ container: Container) {
-        let history = History(context: viewContext)
-        history.identifier = drinkMakerData.generateId()
-        history.container = container
-        drinkMakerData.history = history
-        drinkMakerData.isShowingContainerSelectionView = false
-    }
-    
     private func addToProductContainer(_ ingredient: Ingredient, unit: IngredientUnit, amount: IngredientUnitAmount) {
         let step = Step(context: viewContext)
         step.identifier = drinkMakerData.generateId()
-        step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(ingredient.name ?? "Error item")"
+        step.name = "\(ingredient.name ?? "Error item") \(amount.name ?? "Error item")\(unit.name ?? "Error item")"
         drinkMakerData.steps.append(step)
     }
     

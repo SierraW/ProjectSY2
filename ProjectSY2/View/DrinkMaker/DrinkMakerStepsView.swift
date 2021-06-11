@@ -25,7 +25,6 @@ class DrinkMakerStepsData: ObservableObject {
 struct DrinkMakerStepsView: View {
     @EnvironmentObject var data: DrinkMakerStepsData
     var showPadding = false
-    var isShowingDetail = true
     
     var body: some View {
         HStack {
@@ -33,30 +32,28 @@ struct DrinkMakerStepsView: View {
                 .fill(Color.blue)
                 .frame(width: 4)
                 .cornerRadius(15)
+                .padding(.trailing, showPadding ? 10 : 5)
             VStack {
                 HStack {
                     if showPadding {
                         Text("from \(data.name)")
                             .bold()
-                            .padding(.horizontal, 7)
                     } else {
                         Text("from \(data.name)")
                             .bold()
                     }
                     Spacer()
                 }
-                if isShowingDetail {
-                    Section {
-                        ForEach(data.steps) { step in
-                            HStack {
-                                if showPadding {
-                                    Text(step.name ?? "Error itme")
-                                        .padding(.vertical, 7)
-                                } else {
-                                    Text(step.name ?? "Error itme")
-                                }
-                                Spacer()
+                Section {
+                    ForEach(data.steps) { step in
+                        HStack {
+                            if showPadding {
+                                Text(step.name ?? "Error itme")
+                                    .padding(.vertical, 7)
+                            } else {
+                                Text(step.name ?? "Error itme")
                             }
+                            Spacer()
                         }
                     }
                 }

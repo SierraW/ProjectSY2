@@ -6,63 +6,21 @@
 //
 
 import SwiftUI
-import Combine
-
-class DrinkMakerContainerData: ObservableObject {
-    var history: History?
-    @Published var steps: [Step]
-    @Published var ingredients: [Ingredient]
-    @Published var operations: [Operation]
-    @Published var isSelectedIngredient = false
-    @Published var ingredientNotEmpty = false
-    @Published var operationNotEmpty = false
-    @Published var selectedIngredient: Ingredient? = nil
-    @Published var selectedOperation: Operation? = nil
-    
-    init(_ history: History?) {
-        self.history = history
-        self.steps = []
-        self.ingredients = []
-        self.operations = []
-        if let steps = history?.steps {
-            self.steps = Array(steps as! Set<Step>)
-        }
-        if let operations = history?.container?.operations, operations.count > 0 {
-            operationNotEmpty = true
-            self.operations = Array(operations as! Set<Operation>)
-        }
-        if let ingredients = history?.container?.ingredients, ingredients.count > 0 {
-            ingredientNotEmpty = true
-            isSelectedIngredient = true
-            self.ingredients = Array(ingredients as! Set<Ingredient>)
-        }
-    }
-    
-    func setFocus() {
-        if ingredientNotEmpty && operationNotEmpty {
-            isSelectedIngredient.toggle()
-        }
-    }
-    
-    func add(_ step: Step) {
-        if let history = history {
-            history.addToSteps(step)
-        }
-        steps.append(step)
-    }
-}
 
 struct DrinkMakerContainerView: View {
     @Environment(\.managedObjectContext) var viewContext
-    @EnvironmentObject var drinkMakerData: DrinkMakerData
-    @EnvironmentObject var drinkMakerContainerData: DrinkMakerContainerData
+    @EnvironmentObject var data: DrinkMakerData
+    @State var isSelectedIngredient = true
+    @State var selectedIngredient: Ingredient? = nil
+    @State var selectedOperation: Operation? = nil
     var showActionField = true
+    @Namespace var bottomId
     
     var body: some View {
         VStack {
             VStack {
                 HStack {
-                    Text("Container")
+                    Text(data.historyContainer?.name ?? "Container")
                     Spacer()
                 }
                 Divider()
@@ -77,16 +35,35 @@ struct DrinkMakerContainerView: View {
             }
             .padding()
         }
+        .onAppear(perform: {
+            withAnimation {
+                if data.historyOperations.isEmpty && !data.historyIngredients.isEmpty {
+                    isSelectedIngredient = true
+                } else if data.historyIngredients.isEmpty && !data.historyOperations.isEmpty {
+                    isSelectedIngredient = false
+                }
+            }
+        })
     }
     
     @ViewBuilder
     var containerStepList: some View {
-        if drinkMakerContainerData.steps.isEmpty {
-            Text("Empty Container")
+        if data.historySteps.isEmpty {
+            Text("Empty Container - Click to add steps")
         } else {
-            List {
-                ForEach(drinkMakerContainerData.steps) { step in
-                    Text(step.name ?? "Error item")
+            ScrollViewReader { proxy in
+                ScrollView(.vertical) {
+                    LazyVStack {
+                        ForEach(data.historySteps) { step in
+                            Text(step.name ?? "Error item")
+                        }
+                        Divider().id(bottomId)
+                    }
+                    .onChange(of: data.historySteps, perform: { value in
+                        withAnimation {
+                            proxy.scrollTo(bottomId)
+                        }
+                    })
                 }
             }
         }
@@ -96,9 +73,9 @@ struct DrinkMakerContainerView: View {
     var selectionMenu: some View {
         HStack {
             Spacer()
-            if drinkMakerContainerData.ingredientNotEmpty {
+            if !data.historyIngredients.isEmpty {
                 Button(action: {
-                    drinkMakerContainerData.setFocus()
+                    setFocus()
                 }, label: {
                     Text("Ingredients")
                         .foregroundColor(.blue)
@@ -110,9 +87,9 @@ struct DrinkMakerContainerView: View {
             Spacer()
             Divider()
             Spacer()
-            if drinkMakerContainerData.operationNotEmpty {
+            if !data.historyOperations.isEmpty {
                 Button(action: {
-                    drinkMakerContainerData.setFocus()
+                    setFocus()
                 }, label: {
                     Text("Operations")
                         .foregroundColor(.blue)
@@ -128,11 +105,11 @@ struct DrinkMakerContainerView: View {
     @ViewBuilder
     var ingredientAction: some View {
         HStack {
-            if drinkMakerContainerData.selectedIngredient == nil {
+            if selectedIngredient == nil {
                 List {
-                    ForEach(drinkMakerContainerData.ingredients) { ingredient in
+                    ForEach(data.historyIngredients) { ingredient in
                         Button(ingredient.name ?? "Error item") {
-                            drinkMakerContainerData.selectedIngredient = ingredient
+                            selectedIngredient = ingredient
                         }
                     }
                 }
@@ -141,18 +118,19 @@ struct DrinkMakerContainerView: View {
                     HStack {
                         Image(systemName: "chevron.backward")
                             .gesture(TapGesture().onEnded({ _ in
-                                drinkMakerContainerData.selectedIngredient = nil
+                                selectedIngredient = nil
                             }))
-                        Text(drinkMakerContainerData.selectedIngredient!.name ?? "Error item")
+                        Text(selectedIngredient!.name ?? "Error item")
                         Spacer()
                     }
                     AmountAndUnitSelectionView() { unit, amount in
                         let step = Step(context: viewContext)
-                        step.name = "\(amount.name ?? "Error item")\(unit.name ?? "Error item") \(drinkMakerContainerData.selectedIngredient?.name ?? "Error item")"
-                        drinkMakerContainerData.add(step)
+                        step.name = "\(selectedIngredient?.name ?? "Error item") \(amount.name ?? "Error item")\(unit.name ?? "Error item")"
+                        add(step)
+                        selectedIngredient = nil
                     }
                         .environment(\.managedObjectContext, viewContext)
-                        .environmentObject(AmountAndUnitSelectionData(drinkMakerContainerData.selectedIngredient!))
+                        .environmentObject(AmountAndUnitSelectionData(selectedIngredient!))
                 }
             }
             
@@ -162,11 +140,11 @@ struct DrinkMakerContainerView: View {
     @ViewBuilder
     var operationAction: some View {
         List {
-            ForEach(drinkMakerContainerData.operations) { operation in
+            ForEach(data.historyOperations) { operation in
                 Button(action: {
                     let step = Step(context: viewContext)
                     step.name = operation.name
-                    drinkMakerContainerData.add(step)
+                    add(step)
                 }, label: {
                     Text(operation.name ?? "Error item")
                 })
@@ -176,8 +154,8 @@ struct DrinkMakerContainerView: View {
     
     @ViewBuilder
     var mainInteractingSection: some View {
-        if drinkMakerContainerData.ingredientNotEmpty || drinkMakerContainerData.operationNotEmpty {
-            if drinkMakerContainerData.isSelectedIngredient {
+        if !data.historyIngredients.isEmpty || !data.historyOperations.isEmpty {
+            if isSelectedIngredient {
                 ingredientAction
             } else {
                 operationAction
@@ -190,6 +168,20 @@ struct DrinkMakerContainerView: View {
             }
         }
     }
+    
+    private func setFocus() {
+        if !data.historyIngredients.isEmpty && !data.historyOperations.isEmpty {
+            isSelectedIngredient.toggle()
+        }
+    }
+    
+    private func add(_ step: Step) {
+        if let history = data.history {
+            step.identifier = data.generateId()
+            history.addToSteps(step)
+        }
+        data.historySteps.append(step)
+    }
 }
 
 struct DrinkMakerContainerView_Previews: PreviewProvider {
@@ -197,6 +189,5 @@ struct DrinkMakerContainerView_Previews: PreviewProvider {
         DrinkMakerContainerView()
             .environment(\.managedObjectContext, PersistenceController.shared.container.viewContext)
             .environmentObject(DrinkMakerData())
-            .environmentObject(DrinkMakerContainerData(nil))
     }
 }

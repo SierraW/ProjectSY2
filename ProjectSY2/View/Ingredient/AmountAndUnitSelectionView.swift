@@ -76,13 +76,23 @@ class AmountAndUnitSelectionData: ObservableObject {
         isEditingAmount = amount
     }
     
-    func addUnit(_ unit: IngredientUnit) {
+    func add(_ unit: IngredientUnit) {
         ingredient.addToUnits(unit)
         units.append(unit)
         setFocusOnUnit(unit)
     }
     
-    func addAmount(_ amount: IngredientUnitAmount) {
+    func remove(_ unit: IngredientUnit) {
+        if selectedUnit == unit {
+            set(nil)
+        }
+        ingredient.removeFromUnits(unit)
+        if let index = units.firstIndex(of: unit) {
+            units.remove(at: index)
+        }
+    }
+    
+    func add(_ amount: IngredientUnitAmount) {
         if selectedUnit == nil {
             warningUnitIsNotSelected = true
             return
@@ -91,11 +101,21 @@ class AmountAndUnitSelectionData: ObservableObject {
         amounts.append(amount)
         setFocusOnAmount(amount)
     }
+    
+    func remove(_ amount: IngredientUnitAmount) {
+        if let unit = selectedUnit {
+            unit.removeFromAmounts(amount)
+            if let index = amounts.firstIndex(of: amount) {
+                amounts.remove(at: index)
+            }
+        }
+    }
 }
 
 struct AmountAndUnitSelectionView: View {
     @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var amountAndUnitSelectionData: AmountAndUnitSelectionData
+    var allowEdit = true
     var selected: ((IngredientUnit, IngredientUnitAmount) -> Void)?
     
     var body: some View {
@@ -106,12 +126,14 @@ struct AmountAndUnitSelectionView: View {
                     HStack {
                         Text("Amount List")
                         Spacer()
-                        Button(action: {
-                            addAmount()
-                        }, label: {
-                            Image(systemName: "plus.square.fill")
-                                .font(.title2)
-                        })
+                        if allowEdit {
+                            Button(action: {
+                                addAmount()
+                            }, label: {
+                                Image(systemName: "plus.square.fill")
+                                    .font(.title2)
+                            })
+                        }
                     }
                     amountList
                     Spacer()
@@ -123,12 +145,14 @@ struct AmountAndUnitSelectionView: View {
                     HStack {
                         Text("Unit List")
                         Spacer()
-                        Button(action: {
-                            addUnit()
-                        }, label: {
-                            Image(systemName: "plus.square")
-                                .font(.title2)
-                        })
+                        if allowEdit {
+                            Button(action: {
+                                addUnit()
+                            }, label: {
+                                Image(systemName: "plus.square")
+                                    .font(.title2)
+                            })
+                        }
                     }
                     unitList
                     Spacer()
@@ -197,22 +221,22 @@ struct AmountAndUnitSelectionView: View {
                         }
                     } else {
                         HStack {
-                            HStack {
-                                Spacer()
-                                Text(unit.name!)
-                                Spacer()
+                            Spacer()
+                            Text(unit.name!)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            withAnimation {
+                                amountAndUnitSelectionData.set(unit)
                             }
-                                .gesture(
-                                    TapGesture()
-                                        .onEnded { _ in
-                                            amountAndUnitSelectionData.set(unit)
-                                        }
-                                )
-                            Image(systemName: "pencil")
-                                .foregroundColor(.blue)
-                                .gesture(TapGesture().onEnded({ _ in
+                        }
+                        .onLongPressGesture {
+                            withAnimation {
+                                if allowEdit {
                                     amountAndUnitSelectionData.setFocusOnUnit(unit)
-                                }))
+                                }
+                            }
                         }
                     }
                 }
@@ -259,21 +283,24 @@ struct AmountAndUnitSelectionView: View {
                         }
                     } else {
                         HStack {
-                            HStack {
-                                Spacer()
-                                Text(amount.name!)
-                                Spacer()
-                            }
-                            .gesture(TapGesture().onEnded({ _ in
-                                if selected != nil {
-                                    selected!(amountAndUnitSelectionData.selectedUnit!, amount)
+                            Spacer()
+                            Text(amount.name!)
+                            Spacer()
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            if let selected = selected {
+                                withAnimation {
+                                    selected(amountAndUnitSelectionData.selectedUnit!, amount)
                                 }
-                            }))
-                            Image(systemName: "pencil")
-                                .foregroundColor(.blue)
-                                .gesture(TapGesture().onEnded({ _ in
+                            }
+                        }
+                        .onLongPressGesture {
+                            if allowEdit {
+                                withAnimation {
                                     amountAndUnitSelectionData.setFocusOnAmount(amount)
-                                }))
+                                }
+                            }
                         }
                     }
                 }
@@ -281,26 +308,19 @@ struct AmountAndUnitSelectionView: View {
         }
     }
     
-    private func verifyUnitNameField() -> Bool {
-        return amountAndUnitSelectionData.unitName != ""
-    }
-    
-    private func verifyAmountNameField() -> Bool {
-        return amountAndUnitSelectionData.amountName != ""
-    }
-    
     private func addUnit() {
         let newUnit = IngredientUnit(context: viewContext)
         newUnit.name = "NewUnit"
-        amountAndUnitSelectionData.addUnit(newUnit)
+        amountAndUnitSelectionData.add(newUnit)
     }
     
     private func saveUnit() {
-        if !verifyUnitNameField() {
-            return
-        }
         if let unit = amountAndUnitSelectionData.isEditingUnit {
-            unit.name = amountAndUnitSelectionData.unitName
+            if amountAndUnitSelectionData.unitName == "" {
+                amountAndUnitSelectionData.remove(unit)
+            } else {
+                unit.name = amountAndUnitSelectionData.unitName
+            }
             save()
             amountAndUnitSelectionData.setFocusOnUnit(nil)
         }
@@ -309,15 +329,16 @@ struct AmountAndUnitSelectionView: View {
     private func addAmount() {
         let newAmount = IngredientUnitAmount(context: viewContext)
         newAmount.name = "NewAmount"
-        amountAndUnitSelectionData.addAmount(newAmount)
+        amountAndUnitSelectionData.add(newAmount)
     }
     
     private func saveAmount() {
-        if !verifyAmountNameField() {
-            return
-        }
         if let amount = amountAndUnitSelectionData.isEditingAmount {
-            amount.name = amountAndUnitSelectionData.amountName
+            if amountAndUnitSelectionData.amountName == "" {
+                amountAndUnitSelectionData.remove(amount)
+            } else {
+                amount.name = amountAndUnitSelectionData.amountName
+            }
             save()
             amountAndUnitSelectionData.setFocusOnAmount(nil)
         }

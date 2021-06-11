@@ -37,15 +37,29 @@ class ContainerData: ObservableObject {
     
     func add(_ ingredient: Ingredient) {
         if let container = container {
-            container.addToIngredients(ingredient)
-            ingredients.append(ingredient)
+            if container.ingredients?.contains(ingredient) ?? false {
+                if let index = ingredients.firstIndex(of: ingredient) {
+                    ingredients.remove(at: index)
+                }
+                container.removeFromIngredients(ingredient)
+            } else {
+                ingredients.append(ingredient)
+                container.addToIngredients(ingredient)
+            }
         }
     }
     
     func add(_ operation: Operation) {
         if let container = container {
-            container.addToOperations(operation)
-            operations.append(operation)
+            if container.operations?.contains(operation) ?? false {
+                if let index = operations.firstIndex(of: operation) {
+                    operations.remove(at: index)
+                }
+                container.removeFromOperations(operation)
+            } else {
+                operations.append(operation)
+                container.addToOperations(operation)
+            }
         }
     }
 }

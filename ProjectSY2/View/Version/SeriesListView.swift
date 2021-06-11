@@ -20,6 +20,7 @@ struct SeriesListView: View {
     @State var seriesName: String = ""
     var isEditable = true
     var selected: ((Version) -> Void)?
+    var practiceModeAction: ((Version) -> Void)?
     var creativeModeAction: ((Version) -> Void)?
     @State var isDeleteFailed = false
     
@@ -60,13 +61,23 @@ struct SeriesListView: View {
             Spacer()
         }
         .sheet(item: $selectedVersion, content: { version in
-            DrinkMakerProductContainerContentView(from: version, showProductName: true, showsIsotopeMenu: true) { verison in
-                selectedVersion = nil
-                Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { timer in
-                    creativeModeAction?(version)
-                    timer.invalidate()
+            DrinkMakerProductContainerContentView(from: version, showProductName: true, showsIsotopeMenu: true, practiceModeAction: { version in
+                if let practiceModeAction = practiceModeAction {
+                    selectedVersion = nil
+                    Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { timer in
+                        practiceModeAction(version)
+                        timer.invalidate()
+                    }
                 }
-            }
+            }, creativeModeAction: { verison in
+                if let creativeModeAction = creativeModeAction {
+                    selectedVersion = nil
+                    Timer.scheduledTimer(withTimeInterval: 0.1, repeats: false) { timer in
+                        creativeModeAction(version)
+                        timer.invalidate()
+                    }
+                }
+            })
         })
         .alert(isPresented: $isDeleteFailed, content: {
             Alert(title: Text("Delete failed."))

@@ -51,7 +51,10 @@ struct DataStoreMenuView: View {
                         SubmitButtonView(title: "Operaion", font: 17, foregroundColor: Color.black, backgroundColor: Color(#colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)))
                     })
                 NavigationLink(
-                    destination: SeriesListView(isPresented: .constant(true), creativeModeAction: { version in
+                    destination: SeriesListView(isPresented: .constant(true), practiceModeAction: { version in
+                        controller.practiceMode(version: version)
+                        landingViewData.isShowingMainMenu = false
+                    }, creativeModeAction: { version in
                         controller.creatorMode(with: version)
                         landingViewData.isShowingMainMenu = false
                     })

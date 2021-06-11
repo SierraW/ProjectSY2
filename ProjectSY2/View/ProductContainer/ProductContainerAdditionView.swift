@@ -59,15 +59,29 @@ class ProductContainerAdditionData: ObservableObject {
     
     func add(_ ingredient: Ingredient) {
         if let pc = productContainer {
-            ingredients.append(ingredient)
-            pc.addToIngredients(ingredient)
+            if pc.ingredients?.contains(ingredient) ?? false {
+                if let index = ingredients.firstIndex(of: ingredient) {
+                    ingredients.remove(at: index)
+                }
+                pc.removeFromIngredients(ingredient)
+            } else {
+                ingredients.append(ingredient)
+                pc.addToIngredients(ingredient)
+            }
         }
     }
     
     func add(_ operation: Operation) {
         if let pc = productContainer {
-            operations.append(operation)
-            pc.addToOperations(operation)
+            if pc.operations?.contains(operation) ?? false {
+                if let index = operations.firstIndex(of: operation) {
+                    operations.remove(at: index)
+                }
+                pc.removeFromOperations(operation)
+            } else {
+                operations.append(operation)
+                pc.addToOperations(operation)
+            }
         }
     }
 }

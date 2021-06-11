@@ -12,9 +12,17 @@ class DrinkMakerComparator {
         return lhs.identifier < rhs.identifier
     }
     
+    static func compare(_ lhs: Ingredient, _ rhs: Ingredient) -> Bool {
+        return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
+    }
+    
+    static func compare(_ lhs: Operation, _ rhs: Operation) -> Bool {
+        return lhs.name?.compare(rhs.name ?? "") == .orderedAscending
+    }
+    
     static func compare(_ lhs: Set<Step>, _ rhs: Set<Step>) -> Bool {
-        let lhsArr = Array(lhs).sorted(by: compare(_:_:))
-        let rhsArr = Array(rhs).sorted(by: compare(_:_:))
+        let lhsArr = lhs.sorted(by: compare(_:_:))
+        let rhsArr = rhs.sorted(by: compare(_:_:))
         if lhsArr.count != rhsArr.count {
             return false
         }

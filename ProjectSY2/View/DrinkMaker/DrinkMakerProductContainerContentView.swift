@@ -10,12 +10,12 @@ import SwiftUI
 struct DrinkMakerProductContainerContentView: View {
     @Environment(\.managedObjectContext) var viewContext
     @EnvironmentObject var data: DrinkMakerData
-    var showNotification = true
     var isLivePreview: Bool
     @State var isotopes: [Isotope] = []
     var name: String?
     var productContainer: ProductContainer?
     var steps: [Step] = []
+    var practiceModeAction: ((Version) -> Void)?
     var creativeModeAction: ((Version) -> Void)?
     var version: Version?
     @State var selectedIsotope: Isotope?
@@ -31,8 +31,9 @@ struct DrinkMakerProductContainerContentView: View {
         isLivePreview = true
     }
     
-    init(from version: Version, showProductName: Bool = false, showsIsotopeMenu: Bool = false, creativeModeAction: ((Version) -> Void)? = nil) {
+    init(from version: Version, showProductName: Bool = false, showsIsotopeMenu: Bool = false, practiceModeAction: ((Version) -> Void)? = nil, creativeModeAction: ((Version) -> Void)? = nil) {
         isLivePreview = false
+        self.practiceModeAction = practiceModeAction
         self.creativeModeAction = creativeModeAction
         self.version = version
         if showsIsotopeMenu, let isotopeSet = version.isotopes as? Set<Isotope> {
@@ -45,12 +46,11 @@ struct DrinkMakerProductContainerContentView: View {
         }
     }
     
-    init(name: String?, productContainer: ProductContainer, steps: [Step], showNotification: Bool = true) {
+    init(name: String?, productContainer: ProductContainer, steps unsortedSteps: Set<Step>) {
         isLivePreview = false
-        self.showNotification = showNotification
         self.name = name
         self.productContainer = productContainer
-        self.steps = steps
+        self.steps = steps.sorted(by: DrinkMakerComparator.compare(_:_:))
     }
     
     init(from isotope: Isotope) {
@@ -62,7 +62,7 @@ struct DrinkMakerProductContainerContentView: View {
             productContainer = pc
         }
         if let stepSet = isotope.steps as? Set<Step> {
-            steps = Array(stepSet)
+            steps = stepSet.sorted(by: DrinkMakerComparator.compare(_:_:))
         }
     }
     
@@ -73,10 +73,21 @@ struct DrinkMakerProductContainerContentView: View {
             } else {
                 review
                     .padding()
-                if showNotification {
-                    HStack(spacing: 0) {
-                        Text("Use")
-                        if let creativeModeAction = creativeModeAction {
+                VStack {
+                    if let practiceModeAction = practiceModeAction {
+                        Text("Pratice Now")
+                            .onTapGesture {
+                                if let version = version {
+                                    withAnimation {
+                                        practiceModeAction(version)
+                                    }
+                                }
+                            }
+                            .foregroundColor(.blue)
+                    }
+                    if let creativeModeAction = creativeModeAction {
+                        HStack(spacing: 0) {
+                            Text("Or use")
                             Text(" Creative Mode ")
                                 .onTapGesture {
                                     if let version = version {
@@ -86,11 +97,10 @@ struct DrinkMakerProductContainerContentView: View {
                                     }
                                 }
                                 .foregroundColor(.blue)
-                        } else {
-                            Text(" Creative Mode ")
+                            Text("to modify the answer")
                         }
-                        Text("to modify main answer")
                     }
+                    
                 }
             }
             if !isotopes.isEmpty {
@@ -131,7 +141,7 @@ struct DrinkMakerProductContainerContentView: View {
                                         Spacer()
                                     }
                                 } else if let history = step.childHistory{
-                                    DrinkMakerStepsView(isShowingDetail: true)
+                                    DrinkMakerStepsView()
                                         .environmentObject(DrinkMakerStepsData(history))
                                 }
                             }
@@ -179,7 +189,7 @@ struct DrinkMakerProductContainerContentView: View {
                                         Spacer()
                                     }
                                 } else if let history = step.childHistory{
-                                    DrinkMakerStepsView(showPadding: true, isShowingDetail: true)
+                                    DrinkMakerStepsView(showPadding: true)
                                         .environmentObject(DrinkMakerStepsData(history))
                                 }
                             }

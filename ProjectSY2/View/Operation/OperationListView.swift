@@ -61,18 +61,17 @@ struct OperationListView: View {
                                 set(nil)
                                 save()
                             }
-                            .frame(width: 300, height: 40, alignment: .center)
                         }
                     } else {
                         HStack {
                             Text(oper.name ?? "Error item")
-                                .frame(width: 300, height: 40, alignment: .leading)
                             Spacer()
                             if !selectedOperations.isEmpty && selectedOperationsContains(oper) {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.green)
                             }
                         }
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             if let selected = selected {
                                 selected(oper)

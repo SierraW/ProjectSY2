@@ -43,7 +43,14 @@ class DrinkMakerController {
         data.productContainer = nil
         data.identifierGenerator = 0
         data.steps = []
+        data.ingredients = []
+        data.operations = []
+        
         data.history = nil
+        data.historyContainer = nil
+        data.historySteps = []
+        data.historyIngredients = []
+        data.historyOperations = []
     }
     
     func randomMode(serieses: [Series]) -> Bool {

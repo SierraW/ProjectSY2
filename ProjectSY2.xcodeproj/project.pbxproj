@@ -237,7 +237,6 @@
 			children = (
 				3B859B062666A1C00028A17F /* Version */,
 				3B859AFF26669D770028A17F /* Menu */,
-				3BC0A3DA26602D230058C261 /* AmountAndUnit */,
 				3BAEEFCE265EA7000006E415 /* Utils */,
 				3BAEEFC7265E9FDB0006E415 /* DrinkMaker */,
 				3BAEEFD9265EE4FF0006E415 /* Operation */,
@@ -253,6 +252,7 @@
 			children = (
 				3BAEEFC8265EA00A0006E415 /* IngredientListView.swift */,
 				3BAEEFCC265EA3B90006E415 /* IngredientAdditionView.swift */,
+				3BC0A3DB26602E090058C261 /* AmountAndUnitSelectionView.swift */,
 				3B859B12266875F10028A17F /* IngredientAmountUnitSelectionView.swift */,
 			);
 			path = Ingredient;
@@ -310,14 +310,6 @@
 				3BBF0005265F3BB900EDE488 /* OperationEditingView.swift */,
 			);
 			path = Operation;
-			sourceTree = "<group>";
-		};
-		3BC0A3DA26602D230058C261 /* AmountAndUnit */ = {
-			isa = PBXGroup;
-			children = (
-				3BC0A3DB26602E090058C261 /* AmountAndUnitSelectionView.swift */,
-			);
-			path = AmountAndUnit;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

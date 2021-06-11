@@ -11,17 +11,17 @@ struct DrinkMakerComparisonView: View {
     var isSuccessful = false
     
     var originalProductContainer: ProductContainer?
-    var originalSteps: [Step] = []
+    var originalStepSet: Set<Step> = Set()
     
     var comparedProductContainer: ProductContainer?
-    var comparedSteps: [Step] = []
+    var comparedStepSet: Set<Step> = Set()
     
     init(from question: Question) {
         if let version = question.version, let opc = version.productContainer, let ost = version.steps as? Set<Step>, let cpc = question.productContainer, let cst = question.steps as? Set<Step> {
             originalProductContainer = opc
-            originalSteps = Array(ost).sorted(by: DrinkMakerComparator.compare(_:_:))
+            originalStepSet = ost
             comparedProductContainer = cpc
-            comparedSteps = Array(cst).sorted(by: DrinkMakerComparator.compare(_:_:))
+            comparedStepSet = cst
             isSuccessful = true
         }
     }
@@ -35,14 +35,14 @@ struct DrinkMakerComparisonView: View {
                         Text("Your Answer")
                             .bold()
                             .foregroundColor(.red)
-                        DrinkMakerProductContainerContentView(name: nil, productContainer: comparedProductContainer!, steps: comparedSteps, showNotification: false)
+                        DrinkMakerProductContainerContentView(name: nil, productContainer: comparedProductContainer!, steps: comparedStepSet)
                     }
                     Divider()
                     VStack {
                         Text("Correct Answer")
                             .bold()
                             .foregroundColor(.green)
-                        DrinkMakerProductContainerContentView(name: nil, productContainer: originalProductContainer!, steps: originalSteps, showNotification: false)
+                        DrinkMakerProductContainerContentView(name: nil, productContainer: originalProductContainer!, steps: originalStepSet)
                     }
                 }
                 Spacer()

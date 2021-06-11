@@ -11,7 +11,7 @@ class DrinkMakerIsotopeController {
     func getId(_ containerName: String?, _ steps: Set<Step>) -> Int {
         var hasher = Hasher()
         hasher.combine(containerName)
-        steps.forEach { step in
+        steps.sorted(by: DrinkMakerComparator.compare(_:_:)).forEach { step in
             if let name = step.name {
                 hasher.combine(name)
             } else if let history = step.history, let stepSet = history.steps as? Set<Step> {

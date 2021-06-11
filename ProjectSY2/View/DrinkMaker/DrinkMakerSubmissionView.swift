@@ -45,17 +45,17 @@ struct DrinkMakerSubmissionView: View {
                         landingViewData.back(with: DrinkMakerWarning(id: ObjectIdentifier(Self.self), message: "Random failed: Not enough drink."))
                     }
                 }, label: {
-                    SubmitButtonView(title: "Start with random drink")
+                    SubmitButtonView(title: "Start with random drink", backgroundColor: .black)
                 })
                 Button(action: {
                     landingViewData.controller.pracitcePreparingMode()
                 }, label: {
-                    SubmitButtonView(title: "Start with specific drink")
+                    SubmitButtonView(title: "Start with specific drink", backgroundColor: .black)
                 })
                 Button(action: {
                     landingViewData.back()
                 }, label: {
-                    SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
+                    SubmitButtonView(title: "Return to main menu", backgroundColor: .black)
                 })
             }
         }
@@ -64,18 +64,21 @@ struct DrinkMakerSubmissionView: View {
     @ViewBuilder
     var versionCreator: some View {
         VStack {
-            DrinkMakerProductContainerContentView()
-                .environmentObject(drinkMakerData)
+            Text("Submission Result")
+                .padding()
+            if let version = drinkMakerData.version {
+                DrinkMakerProductContainerContentView(from: version, showProductName: true)
+            }
             VStack {
                 Button(action: {
                     landingViewData.controller.creatorMode()
                 }, label: {
-                    SubmitButtonView(title: "Start again")
+                    SubmitButtonView(title: "Start again", backgroundColor: .black)
                 })
                 Button(action: {
                     landingViewData.back()
                 }, label: {
-                    SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
+                    SubmitButtonView(title: "Return to main menu", backgroundColor: .black)
                 })
             }
         }
@@ -89,7 +92,7 @@ struct DrinkMakerSubmissionView: View {
             Button(action: {
                 landingViewData.back()
             }, label: {
-                SubmitButtonView(title: "Return to main menu", backgroundColor: Color.red)
+                SubmitButtonView(title: "Return to main menu", backgroundColor: .black)
             })
         }
     }

@@ -29,9 +29,9 @@ struct IngredientAmountUnitSelectionView: View {
                             .foregroundColor(.gray)
                     }
                     .rotationEffect(.degrees(270))
-                    .frame(width: 200, height: 15, alignment: .center)
+                    .frame(width: 200, height: 20, alignment: .center)
                 })
-                .frame(width: 10, height: 100, alignment: .center)
+                .frame(width: 20, height: 100, alignment: .center)
                 AmountAndUnitSelectionView { unit, amount in
                     selected(selectedIngredient, unit, amount)
                 }
@@ -67,9 +67,9 @@ struct IngredientAmountUnitSelectionView: View {
                                 .foregroundColor(.gray)
                         }
                         .rotationEffect(.degrees(90))
-                        .frame(width: 200, height: 15, alignment: .center)
+                        .frame(width: 200, height: 20, alignment: .center)
                     })
-                    .frame(width: 15, height: 200, alignment: .center)
+                    .frame(width: 20, height: 200, alignment: .center)
                 }
             }
         }

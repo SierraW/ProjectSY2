@@ -61,16 +61,18 @@ struct IngredientListView: View {
                             TextField("Name of the ingredient", text: $name) { _ in} onCommit: {
                                 submit(ingredient)
                             }
-                            .frame(width: 300, height: 50, alignment: .center)
                             .transition(.opacity)
                         }
                     } else {
                         HStack {
-                            Spacer()
                             Text(item.name ?? "Error item")
-                                .frame(width: 300, height: 40, alignment: .center)
                             Spacer()
+                            if !selectedIngredients.isEmpty, selectedIngredientsContains(item) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.green)
+                            }
                         }
+                        .contentShape(Rectangle())
                         .transition(.opacity)
                         .onTapGesture {
                             withAnimation {
